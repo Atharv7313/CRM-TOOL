@@ -1,0 +1,409 @@
+/* Override global .page for the patients section */
+:host { display: block; }
+:host .page {
+  background: #ede8e0;
+  padding: 0;
+  gap: 16px;
+  min-height: unset;
+}
+
+/* ── Page header ── */
+.pl-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+.pl-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 4px;
+}
+.pl-subtitle {
+  font-size: 13px;
+  color: #888;
+  margin: 0;
+}
+.pl-create-btn {
+  padding: 8px 18px;
+  background: #1b3a2d;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  transition: background .15s;
+}
+.pl-create-btn:hover { background: #2e7d52; }
+
+/* ── Stats — equal size, fills row ── */
+.pl-stats-row { display: flex; gap: 12px; flex-wrap: wrap; }
+.pl-stat-card {
+  background: #fff;
+  border: 1px solid #ddd8d0;
+  border-radius: 14px;
+  padding: 20px 16px;
+  flex: 1;
+  min-width: 100px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.pl-stat-number { font-size: 32px; font-weight: 700; line-height: 1.1; margin-bottom: 6px; }
+.pl-stat-label  { font-size: 9px; font-weight: 600; letter-spacing: 0.08em; color: #9CA3AF; text-transform: uppercase; line-height: 1.4; }
+.pl-num-total        { color: #1a1a1a; }
+.pl-num-active       { color: #2e7d52; }
+.pl-num-completed    { color: #185FA5; }
+.pl-num-withdrawn    { color: #991B1B; }
+.pl-num-cancelled    { color: #c2410c; }
+.pl-num-not-enrolled { color: #6B7280; }
+.pl-num-inactive     { color: #9CA3AF; }
+
+/* ── Filter bar ── */
+.pl-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  background: #fff;
+  border: 1px solid #ddd8d0;
+  border-radius: 14px;
+  padding: 14px 18px;
+}
+.pl-search-wrap { position: relative; display: flex; align-items: center; }
+.pl-search-icon {
+  position: absolute;
+  left: 12px;
+  width: 15px;
+  height: 15px;
+  color: #aaa;
+  pointer-events: none;
+}
+.pl-search-input {
+  height: 40px;
+  width: 260px;
+  padding-left: 36px;
+  border: 1px solid #ddd8d0;
+  border-radius: 10px;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  color: #1a1a1a;
+  background: #fff;
+}
+.pl-search-input:focus { border-color: #1b3a2d; }
+.pl-select {
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid #ddd8d0;
+  border-radius: 10px;
+  font-size: 13px;
+  font-family: inherit;
+  background: #fff;
+  color: #1a1a1a;
+  cursor: pointer;
+  outline: none;
+}
+.pl-btn-apply {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 20px;
+  height: 40px;
+  background: #1b3a2d;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+.pl-btn-apply:hover { background: #264d3c; }
+
+.pl-btn-clear {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 20px;
+  height: 40px;
+  background: #fff;
+  color: #1b3a2d;
+  border: 1.5px solid #1b3a2d;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+.pl-btn-clear:hover { background: #f0f4f2; }
+
+/* ── Table card ── */
+.pl-table-card {
+  background: #fff;
+  border: 1px solid #ddd8d0;
+  border-radius: 14px;
+  overflow: hidden;
+}
+.pl-table-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-bottom: 1px solid #f0ece6;
+}
+.pl-table-title { font-size: 15px; font-weight: 700; color: #1a1a1a; }
+.pl-record-badge {
+  font-size: 12px;
+  color: #7a7a7a;
+  background: #f0ece6;
+  border-radius: 999px;
+  padding: 4px 14px;
+  font-weight: 600;
+}
+.pl-table { width: 100%; border-collapse: collapse; }
+.pl-table thead tr { border-bottom: 1px solid #f0ece6; }
+.pl-table th {
+  padding: 10px 20px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #9CA3AF;
+  text-align: left;
+  background: #faf9f7;
+}
+.pl-table td {
+  padding: 15px 20px;
+  font-size: 13px;
+  color: #1a1a1a;
+  border-bottom: 1px solid #f5f3ef;
+  vertical-align: middle;
+}
+.pl-row:last-child td { border-bottom: none; }
+.pl-row:hover td { background: #fafafa; }
+.pl-name-link {
+  font-weight: 600;
+  color: #185FA5;
+  cursor: pointer;
+  text-decoration: none;
+}
+.pl-name-link:hover { text-decoration: underline; }
+.pl-cell-muted    { color: #7a7a7a; font-size: 12px; }
+.pl-protocol-name { font-size: 12px; font-weight: 500; color: #1a1a1a; }
+.pl-site-name     { font-size: 11px; color: #aaa; margin-top: 2px; }
+
+/* ── Status badge with dot ── */
+.pl-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+}
+.pl-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.pl-status-active        { background: #dcfce7; color: #15803d; }
+.pl-status-active        .pl-dot { background: #22c55e; }
+.pl-status-completed     { background: #dbeafe; color: #1d4ed8; }
+.pl-status-completed     .pl-dot { background: #3b82f6; }
+.pl-status-withdrawn     { background: #fee2e2; color: #b91c1c; }
+.pl-status-withdrawn     .pl-dot { background: #ef4444; }
+.pl-status-cancelled     { background: #ffedd5; color: #c2410c; }
+.pl-status-cancelled     .pl-dot { background: #f97316; }
+.pl-status-not-enrolled  { background: #f3f4f6; color: #6b7280; }
+.pl-status-not-enrolled  .pl-dot { background: #9ca3af; }
+.pl-status-inactive      { background: #fef9c3; color: #a16207; }
+.pl-status-inactive      .pl-dot { background: #eab308; }
+
+/* ── Name (plain text) ── */
+.pl-name-text { font-weight: 600; color: #1a1a1a; }
+
+/* ── Icon-only action buttons ── */
+.pl-actions { display: flex; align-items: center; gap: 6px; }
+/* pl-icon-btn is defined globally in styles.css */
+.pl-icon-enroll { color: #15803d; border-color: #86efac; background: #f0fdf4; }
+.pl-icon-enroll:hover { background: #dcfce7; }
+.pl-icon-danger { color: #b91c1c; border-color: #fca5a5; background: #fef2f2; }
+.pl-icon-danger:hover { background: #fee2e2; }
+
+/* ── Patient detail panel ── */
+/* ── Patient Profile Panel (spacious — like Edit Protocol modal) ── */
+.pd-panel {
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.22);
+  width: 100%;
+  max-width: 820px;
+  min-width: 560px;
+  overflow: hidden;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.pd-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28px 36px 24px;
+  border-bottom: 1px solid #f0f0f0;
+  flex-shrink: 0;
+}
+
+.pd-panel-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+/* Deactivate button */
+.pd-deactivate-btn {
+  padding: 8px 20px;
+  background: #FEF2F2;
+  color: #DC2626;
+  border: 1.5px solid #FECACA;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background .15s;
+}
+.pd-deactivate-btn:hover { background: #FEE2E2; }
+
+/* Fix cursor on close */
+.modal-close-btn { cursor: pointer !important; user-select: none; }
+
+.pd-loading { padding: 60px; text-align: center; color: #aaa; font-size: 14px; }
+
+/* Identity section */
+.pd-identity-compact {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 32px 36px 28px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.pd-identity-name {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 8px;
+}
+
+.pd-identity-meta {
+  font-size: 13px;
+  color: #aaa;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.pd-meta-sep {
+  color: #ddd;
+}
+
+/* Enrollment history label */
+.pd-section-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 28px 36px 16px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a1a1a;
+  flex-shrink: 0;
+}
+.pd-count {
+  background: #f0ece6;
+  color: #7a7a7a;
+  border-radius: 999px;
+  padding: 3px 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.pd-table-wrap { overflow-y: auto; flex: 1; padding-bottom: 20px; }
+.pd-table th {
+  padding: 12px 36px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  color: #bbb;
+  text-align: left;
+  background: #fafafa;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.pd-table td {
+  padding: 20px 36px;
+  font-size: 14px;
+  color: #1a1a1a;
+  border-bottom: 1px solid #f5f5f5;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pd-table tbody tr:last-child td {
+  border-bottom: none;
+  padding-bottom: 28px;
+}
+.pd-table tbody tr:hover td { background: #fafafa; }
+
+.pd-cell-protocol { font-weight: 500; color: #1a1a1a; font-size: 14px; }
+.pd-cell-muted    { color: #888; font-size: 13px; }
+.pd-empty {
+  padding: 48px 36px;
+  font-size: 14px;
+  color: #aaa;
+  text-align: center;
+}
+/* ── Empty ── */
+.pl-empty { padding: 40px; text-align: center; color: #aaa; font-size: 13px; }
+
+/* ── Pagination ── */
+.pl-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-top: 1px solid #f0ece6;
+  background: #faf9f7;
+}
+.pl-page-info { font-size: 12px; color: #7a7a7a; }
+.pl-page-controls { display: flex; align-items: center; gap: 4px; }
+.pl-page-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  border: 1px solid #ddd8d0;
+  background: #fff;
+  cursor: pointer;
+  font-size: 13px;
+  color: #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+}
+.pl-page-btn:hover { background: #f0ece6; }
+.pl-page-active { background: #1b3a2d !important; color: #fff !important; border-color: #1b3a2d !important; }
+.pl-page-ellipsis {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: #aaa;
+}

@@ -1,0 +1,230 @@
+<div class="content">
+  <div class="users-header">
+    <div>
+      <h3 class="section-title">Notifications &amp; Alerts</h3>
+      <p class="section-sub">Real-time alerts for study milestones, lab results, and compliance deadlines.</p>
+    </div>
+    <div class="reports-actions">
+      <button class="btn-ghost" (click)="loadNotifications(); loadNotifHistory()" title="Refresh">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/></svg>
+        Refresh
+      </button>
+      <button class="btn-ghost" (click)="markAllRead()" [disabled]="notifUnread === 0">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+        Mark all read
+      </button>
+      <button class="btn-enroll" *ngIf="canSend" (click)="openSendPanel()">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/></svg>
+        Send Notification
+      </button>
+    </div>
+  </div>
+
+  <!-- History summary tiles -->
+  <div class="mini-stats" *ngIf="notifHistory">
+    <div class="mini-stat"><span class="mini-val">{{ notifHistory.totalCount }}</span><span class="mini-label">Total (30d)</span></div>
+    <div class="mini-stat"><span class="mini-val">{{ notifHistory.unreadCount }}</span><span class="mini-label">Unread</span></div>
+    <div class="mini-stat"><span class="mini-val">{{ notifHistory.readCount }}</span><span class="mini-label">Read</span></div>
+    <div class="mini-stat"><span class="mini-val">{{ notifHistory.escalatedCount }}</span><span class="mini-label">Escalated</span></div>
+  </div>
+
+  <div class="reports-error" *ngIf="notifError">
+    <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+    {{ notifError }}
+  </div>
+
+  <!-- Tab bar -->
+  <div class="notif-tabs">
+    <button class="notif-tab" [class.active]="activeTab === 'inbox'" (click)="switchTab('inbox')">
+      Inbox
+      <span class="section-badge" *ngIf="notifUnread > 0">{{ notifUnread }}</span>
+    </button>
+    <button class="notif-tab" *ngIf="canSend" [class.active]="activeTab === 'sent'" (click)="switchTab('sent')">
+      Sent
+      <span class="section-badge" *ngIf="sentNotifications.length > 0">{{ sentNotifications.length }}</span>
+    </button>
+  </div>
+
+  <!-- Inbox -->
+  <div class="section-card" *ngIf="activeTab === 'inbox'">
+    <div class="section-header">
+      <h4>Inbox</h4>
+      <div class="reports-table-tools">
+        <select class="scope-select" [(ngModel)]="notifStatusFilter" (ngModelChange)="onFilterChange()">
+          <option value="">All statuses</option>
+          <option value="UNREAD">Unread</option>
+          <option value="READ">Read</option>
+          <option value="ESCALATED">Escalated</option>
+        </select>
+        <select class="scope-select" [(ngModel)]="notifCategoryFilter" (ngModelChange)="onFilterChange()">
+          <option value="">All categories</option>
+          <option *ngFor="let c of notifCategories" [value]="c">{{ c }}</option>
+        </select>
+        <span class="section-badge">{{ notifications.length }}</span>
+      </div>
+    </div>
+
+    <div class="re-loading" *ngIf="notifLoading">
+      <div class="spinner-lg"></div><span>Loading notifications...</span>
+    </div>
+
+    <ul class="notif-list" *ngIf="!notifLoading">
+      <li class="notif-item" *ngFor="let n of notifications"
+          [class.unread]="n.status === 'UNREAD'"
+          [class.escalated]="n.status === 'ESCALATED'">
+        <span class="notif-dot-status" *ngIf="n.status === 'UNREAD' || n.status === 'ESCALATED'"></span>
+        <div class="notif-body">
+          <div class="notif-top">
+            <span class="cat-chip" [style.background]="categoryColor(n.category)" [style.color]="categoryText(n.category)">{{ n.category }}</span>
+            <span class="notif-status" *ngIf="n.status === 'ESCALATED'">ESCALATED</span>
+            <span class="notif-time">{{ n.createdAt + 'Z' | date:'dd MMM yyyy, HH:mm' }}</span>
+          </div>
+          <p class="notif-msg">{{ n.message }}</p>
+        </div>
+        <div class="notif-actions">
+          <button class="btn-edit-row" *ngIf="n.status !== 'READ'" (click)="markRead(n)" title="Mark read">
+            <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+          </button>
+          <button class="btn-del-row" (click)="deleteNotif(n)" title="Dismiss">
+            <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+          </button>
+        </div>
+      </li>
+      <li class="re-empty" *ngIf="notifications.length === 0">No notifications.</li>
+    </ul>
+  </div>
+
+  <!-- Sent -->
+  <div class="section-card" *ngIf="activeTab === 'sent'">
+    <div class="section-header">
+      <h4>Sent Notifications</h4>
+      <div class="reports-table-tools">
+        <button class="btn-ghost" (click)="loadSentNotifications()" title="Refresh" style="padding:4px 10px;font-size:12px">Refresh</button>
+        <span class="section-badge">{{ sentNotifications.length }}</span>
+      </div>
+    </div>
+
+    <div class="re-loading" *ngIf="sentLoading">
+      <div class="spinner-lg"></div><span>Loading sent notifications...</span>
+    </div>
+
+    <div class="table-wrap table-wrap--scroll" *ngIf="!sentLoading">
+      <table>
+        <thead class="thead-sticky">
+          <tr>
+            <th>Recipient</th>
+            <th>Category</th>
+            <th>Message</th>
+            <th>Channel</th>
+            <th>Status</th>
+            <th>Sent At</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let n of sentNotifications">
+            <td class="muted">{{ n.recipientName || '—' }}</td>
+            <td>
+              <span class="cat-chip"
+                [style.background]="categoryColor(n.category)"
+                [style.color]="categoryText(n.category)">
+                {{ n.category }}
+              </span>
+            </td>
+            <td style="max-width:320px;white-space:normal">{{ n.message }}</td>
+            <td class="muted">{{ n.channel }}</td>
+            <td>
+              <span class="role-chip">{{ n.status }}</span>
+            </td>
+            <td class="muted">{{ n.createdAt + 'Z' | date:'dd MMM yyyy, HH:mm' }}</td>
+          </tr>
+          <tr *ngIf="sentNotifications.length === 0">
+            <td colspan="6" class="empty-row">No notifications sent yet.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Send Notification Panel -->
+<div class="overlay" *ngIf="showSendPanel" (click)="closeSendPanel()"></div>
+<div class="enroll-panel" [class.open]="showSendPanel">
+  <div class="panel-head">
+    <div>
+      <h3>Send Notification</h3>
+      <p>Deliver an alert to a user or broadcast to a role.</p>
+    </div>
+    <button class="close-btn" (click)="closeSendPanel()">
+      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+    </button>
+  </div>
+  <form [formGroup]="notifForm" (ngSubmit)="submitNotif()" class="panel-form">
+    <div class="panel-alert success" *ngIf="notifSendSuccess">
+      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+      {{ notifSendSuccess }}
+    </div>
+    <div class="panel-alert error" *ngIf="notifSendError">
+      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+      {{ notifSendError }}
+    </div>
+
+    <div class="field">
+      <label>Recipient Type</label>
+      <div class="seg-toggle">
+        <label class="seg" [class.active]="notifForm.get('mode')?.value === 'user'">
+          <input type="radio" formControlName="mode" value="user"/> Single user
+        </label>
+        <label class="seg" [class.active]="notifForm.get('mode')?.value === 'broadcast'" *ngIf="canBroadcast">
+          <input type="radio" formControlName="mode" value="broadcast"/> Broadcast
+        </label>
+      </div>
+    </div>
+
+    <ng-container *ngIf="notifForm.get('mode')?.value === 'user'">
+      <div class="field">
+        <label>Role <span class="req">*</span></label>
+        <select formControlName="recipientRole" (change)="onRecipientRoleChange()">
+          <option value="" disabled>Select a role...</option>
+          <option *ngFor="let r of recipientRoleOptions" [value]="r">{{ r }}</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Employee <span class="req">*</span></label>
+        <select formControlName="userId" [attr.disabled]="notifForm.get('recipientRole')?.value ? null : ''">
+          <option value="" disabled>{{ notifForm.get('recipientRole')?.value ? 'Select an employee...' : 'Select a role first' }}</option>
+          <option *ngFor="let u of recipientsForRole" [value]="u.userId">{{ u.name }}</option>
+        </select>
+        <span class="opt" *ngIf="notifForm.get('recipientRole')?.value && recipientsForRole.length === 0">No employees in this role.</span>
+      </div>
+    </ng-container>
+
+    <div class="field" *ngIf="notifForm.get('mode')?.value === 'broadcast'">
+      <label>Target Role</label>
+      <select formControlName="role">
+        <option value="">All active users</option>
+        <option *ngFor="let r of roles" [value]="r.roleName">{{ r.roleName }}</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Category <span class="req">*</span></label>
+      <select formControlName="category">
+        <option *ngFor="let c of notifCategories" [value]="c">{{ c }}</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Message <span class="req">*</span></label>
+      <textarea formControlName="message" rows="3" placeholder="e.g. Protocol ONC-204 reached enrollment milestone."></textarea>
+      <span class="ferr" *ngIf="notifForm.get('message')?.touched && notifForm.get('message')?.invalid">Message is required (min 3 chars).</span>
+    </div>
+
+    <div class="panel-actions">
+      <button type="button" class="btn-cancel" (click)="closeSendPanel()">Cancel</button>
+      <button type="submit" class="btn-submit" [disabled]="notifForm.invalid || notifSending">
+        <span class="spinner-sm" *ngIf="notifSending"></span>
+        <span>{{ notifSending ? 'Sending...' : 'Send' }}</span>
+      </button>
+    </div>
+  </form>
+</div>

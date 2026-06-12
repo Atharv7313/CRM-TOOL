@@ -1,0 +1,192 @@
+/* Topbar */
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+
+/* Protocol selector panel */
+.selector-panel {
+  padding: 14px 16px;
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.select-protocol { width: 260px; height: 36px; }
+
+/* Protocol info banner */
+.protocol-banner {
+  margin: 0 16px 16px;
+  background: #F0F6FF;
+  border: 1px solid #BFDBFE;
+  border-radius: 8px;
+  padding: 12px 16px;
+}
+
+.protocol-banner-grid {
+  display: flex;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+
+.banner-item-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6B7280;
+  margin-bottom: 3px;
+}
+
+.banner-item-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1E40AF;
+}
+
+.enrollment-window-note {
+  font-size: 11px;
+  font-weight: 400;
+  margin-left: 4px;
+}
+
+.enrollment-window-closed {
+  color: #DC2626;
+}
+
+.active-patient-count {
+  color: #185FA5;
+}
+
+/* Existing visits table cell */
+.cell-visit-name { font-weight: 500; color: #185FA5; }
+
+/* Existing visits count */
+.visits-count {
+  font-size: 11px;
+  color: #6B7280;
+}
+
+/* Visit schedule builder */
+.schedule-body {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Column headers row */
+.schedule-header-row {
+  display: grid;
+  grid-template-columns: 1fr 180px 36px;
+  gap: 10px;
+  padding: 0 4px;
+}
+
+.schedule-col-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #9CA3AF;
+}
+
+/* Visit rows */
+.visit-row {
+  display: grid;
+  grid-template-columns: 1fr 180px 36px;
+  gap: 10px;
+  align-items: start;
+}
+
+.visit-input {
+  height: 36px;
+  font-size: 13px;
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid;
+  padding: 0 12px;
+  box-sizing: border-box;
+}
+
+.visit-date-input {
+  height: 36px;
+  font-size: 13px;
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid;
+  padding: 0 10px;
+  box-sizing: border-box;
+}
+
+.field-error {
+  font-size: 11px;
+  color: #DC2626;
+  margin-top: 3px;
+  line-height: 1.4;
+}
+
+.remove-row-btn {
+  width: 32px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  cursor: pointer;
+  background: #fff;
+  color: #9CA3AF;
+}
+
+/* Schedule footer */
+.schedule-footer {
+  padding-top: 12px;
+  border-top: 1px solid #E5E7EB;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.schedule-footer-info {
+  font-size: 12px;
+  color: #6B7280;
+}
+
+/* Enrollment closed message */
+.enrollment-closed-body {
+  padding: 48px;
+  text-align: center;
+}
+
+.enrollment-closed-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #DC2626;
+  margin-bottom: 6px;
+}
+
+.enrollment-closed-sub {
+  font-size: 12px;
+  color: #6B7280;
+}
+
+/* Empty / initial state */
+.empty-state-body {
+  padding: 48px;
+  text-align: center;
+  color: #9CA3AF;
+}
+
+.empty-state-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #6B7280;
+  margin-bottom: 4px;
+}
+
+.empty-state-sub {
+  font-size: 12px;
+}

@@ -1,0 +1,26 @@
+/* Styles inherited from global styles.css */
+
+.retry-btn {
+  margin-left: 12px;
+  padding: 4px 14px;
+  font-size: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #fff;
+  color: #374151;
+  cursor: pointer;
+}
+.retry-btn:hover { background: #f3f4f6; }
+
+.audit-search-btn {
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 500;
+  border: none;
+  border-radius: 8px;
+  background: #1a3c34;
+  color: #fff;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.audit-search-btn:hover { background: #14312a; }

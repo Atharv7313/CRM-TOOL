@@ -1,0 +1,382 @@
+<div class="page">
+
+  <!-- Toast -->
+  <div class="toast toast-green" [class.show]="toastVisible">
+    <span>{{ toastMessage }}</span>
+  </div>
+
+  <!-- Stats strip -->
+  <div class="pl-stats-row">
+    <div class="pl-stat-card">
+      <div class="pl-stat-number pl-num-total">{{ patients.length }}</div>
+      <div class="pl-stat-label">TOTAL</div>
+    </div>
+    <div class="pl-stat-card">
+      <div class="pl-stat-number pl-num-active">{{ stats.active }}</div>
+      <div class="pl-stat-label">ACTIVE</div>
+    </div>
+    <div class="pl-stat-card">
+      <div class="pl-stat-number pl-num-completed">{{ stats.completed }}</div>
+      <div class="pl-stat-label">COMPLETED</div>
+    </div>
+    <div class="pl-stat-card">
+      <div class="pl-stat-number pl-num-withdrawn">{{ stats.withdrawn }}</div>
+      <div class="pl-stat-label">WITHDRAWN</div>
+    </div>
+    <div class="pl-stat-card">
+      <div class="pl-stat-number pl-num-not-enrolled">{{ stats.notEnrolled }}</div>
+      <div class="pl-stat-label">NOT ENROLLED</div>
+    </div>
+    <div class="pl-stat-card">
+      <div class="pl-stat-number pl-num-inactive">{{ stats.inactive }}</div>
+      <div class="pl-stat-label">INACTIVE</div>
+    </div>
+    <div class="pl-stat-card">
+      <div class="pl-stat-number pl-num-cancelled">{{ stats.cancelled }}</div>
+      <div class="pl-stat-label">CANCELLED</div>
+    </div>
+  </div>
+
+  <!-- Filter bar -->
+  <div class="pl-filter-bar">
+    <div class="pl-search-wrap">
+      <svg class="pl-search-icon" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
+      </svg>
+      <input type="search" [(ngModel)]="searchQuery"
+             placeholder="Search by name or email…"
+             class="pl-search-input">
+    </div>
+
+    <select [(ngModel)]="statusFilter" class="pl-select">
+      <option value="">All Statuses</option>
+      <option value="Active">Active</option>
+      <option value="Completed">Completed</option>
+      <option value="Withdrawn">Withdrawn</option>
+      <option value="Cancelled">Cancelled</option>
+      <option value="Not enrolled">Not enrolled</option>
+      <option value="Inactive">Inactive</option>
+    </select>
+
+    <select [(ngModel)]="filterProtocolId" (ngModelChange)="onFilterProtocolChange()" class="pl-select">
+      <option value="">All Protocols</option>
+      <option *ngFor="let p of protocols" [value]="p.protocolId">{{ p.title }}</option>
+    </select>
+
+    <select [(ngModel)]="filterSiteId" [disabled]="!filterProtocolId" class="pl-select">
+      <option value="">All Sites</option>
+      <option *ngFor="let s of filterSites" [value]="s.protocolSiteId">{{ s.siteName }}</option>
+    </select>
+
+    <button class="pl-btn-apply" (click)="runSearch()">
+      <svg viewBox="0 0 20 20" fill="currentColor" style="width:13px;height:13px"><path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L13 10.414V15a1 1 0 01-.553.894l-4 2A1 1 0 017 17v-6.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/></svg>
+      Apply
+    </button>
+    <button class="pl-btn-clear" (click)="clearFilters()">
+      <svg viewBox="0 0 20 20" fill="currentColor" style="width:13px;height:13px"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+      Clear
+    </button>
+  </div>
+
+  <!-- Table card -->
+  <div class="pl-table-card">
+    <div class="pl-table-head">
+      <span class="pl-table-title">All Patients</span>
+      <span class="pl-record-badge">{{ filteredPatients.length }} records</span>
+    </div>
+
+    <table class="pl-table">
+      <thead>
+        <tr>
+          <th>NAME</th>
+          <th>EMAIL</th>
+          <th>PROTOCOL · SITE</th>
+          <th>STATUS</th>
+          <th>ENROLLED</th>
+          <th>ACTIONS</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of pagedPatients" class="pl-row">
+          <td>
+            <span class="pl-name-text">{{ p.name }}</span>
+          </td>
+          <td class="pl-cell-muted">{{ p.contactInfo || '—' }}</td>
+          <td>
+            <ng-container *ngIf="p.protocolTitle; else noProtocol">
+              <div class="pl-protocol-name">{{ p.protocolTitle }}</div>
+              <div *ngIf="p.siteName" class="pl-site-name">{{ p.siteName }}</div>
+            </ng-container>
+            <ng-template #noProtocol>
+              <span class="pl-cell-muted">—</span>
+            </ng-template>
+          </td>
+          <td>
+            <span class="pl-status-badge" [ngClass]="getStatusDotClass(p.enrollmentStatus)">
+              <span class="pl-dot"></span>{{ p.enrollmentStatus }}
+            </span>
+          </td>
+          <td class="pl-cell-muted">
+            {{ p.enrolledAt ? (p.enrolledAt | date:'dd MMM yyyy') : '—' }}
+          </td>
+          <td>
+            <div class="pl-actions">
+
+              <!-- View -->
+              <button class="pl-icon-btn" title="View" (click)="viewPatient(p)">
+                <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/></svg>
+              </button>
+
+              <ng-container *ngIf="p.enrollmentStatus !== 'Inactive'">
+
+                <!-- Edit -->
+                <button class="pl-icon-btn" title="Edit" (click)="openEditModal(p)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </button>
+
+                <!-- Enroll / Re-enroll -->
+                <button *ngIf="p.enrollmentStatus !== 'Active'"
+                        class="pl-icon-btn pl-icon-enroll"
+                        [title]="p.enrollmentStatus === 'Not enrolled' ? 'Enroll' : 'Re-enroll'"
+                        (click)="openEnrollModal(p)">
+                  <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>
+                </button>
+
+                <!-- Withdraw (trash icon) -->
+                <button *ngIf="p.enrollmentStatus === 'Active'"
+                        class="pl-icon-btn pl-icon-danger" title="Withdraw"
+                        (click)="openWithdrawModal(p)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                </button>
+
+              </ng-container>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="filteredPatients.length === 0">
+          <td colspan="6" class="pl-empty">No patients match the current filters.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Pagination -->
+    <div *ngIf="filteredPatients.length > 0" class="pl-pagination">
+      <span class="pl-page-info">
+        Showing {{ pageStart }}–{{ pageEnd }} of {{ filteredPatients.length }} patients
+      </span>
+      <div class="pl-page-controls">
+        <button (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1"
+                class="pl-page-btn" [style.opacity]="currentPage === 1 ? '0.38' : '1'">‹</button>
+        <ng-container *ngFor="let pg of pageNumbers">
+          <span *ngIf="pg === -1" class="pl-page-ellipsis">…</span>
+          <button *ngIf="pg !== -1" (click)="goToPage(pg)"
+                  class="pl-page-btn" [class.pl-page-active]="pg === currentPage">{{ pg }}</button>
+        </ng-container>
+        <button (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages"
+                class="pl-page-btn" [style.opacity]="currentPage === totalPages ? '0.38' : '1'">›</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Patient Detail Panel ── -->
+  <div class="modal-backdrop" [class.open]="showDetailPanel">
+    <div class="pd-panel">
+
+      <!-- Header: title + deactivate + close -->
+      <div class="pd-panel-head">
+        <span class="pd-panel-title">Patient Profile</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <button *ngIf="detailPatient && detailPatient.patientStatus === 'ACTIVE'"
+                  class="pd-deactivate-btn"
+                  (click)="confirmDetailDeactivate()">
+            Deactivate
+          </button>
+          <div (click)="closeDetailPanel()" class="modal-close-btn">&times;</div>
+        </div>
+      </div>
+
+      <!-- Loading -->
+      <div *ngIf="detailLoading" class="pd-loading">Loading…</div>
+
+      <ng-container *ngIf="!detailLoading && detailPatient">
+
+        <!-- Patient identity — no avatar, compact -->
+        <div class="pd-identity-compact">
+          <div>
+            <div class="pd-identity-name">{{ detailPatient.name }}</div>
+            <div class="pd-identity-meta">
+              <span>{{ detailPatient.contactInfo || 'No email' }}</span>
+              <span class="pd-meta-sep">·</span>
+              <span>DOB: {{ detailPatient.dateOfBirth | date:'dd MMM yyyy' }}</span>
+              <span class="pd-meta-sep">·</span>
+              <span>Registered: {{ detailPatient.createdAt | date:'dd MMM yyyy' }}</span>
+            </div>
+          </div>
+          <div>
+            <span *ngIf="detailPatient.patientStatus === 'INACTIVE'"
+                  class="badge b-inactive" style="font-size:11px">INACTIVE</span>
+            <span *ngIf="detailPatient.patientStatus !== 'INACTIVE'"
+                  class="badge" style="font-size:11px"
+                  [ngClass]="{'b-active':      detailPatient.enrollmentStatus === 'Active',
+                              'b-completed':    detailPatient.enrollmentStatus === 'Completed',
+                              'b-withdrawn':    detailPatient.enrollmentStatus === 'Withdrawn',
+                              'b-not-enrolled': detailPatient.enrollmentStatus === 'Not enrolled'}">
+              {{ detailPatient.enrollmentStatus }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Enrollment history — main content -->
+        <div class="pd-section-label">
+          Enrollment history
+          <span class="pd-count">{{ detailEnrollments.length }}</span>
+        </div>
+
+        <div *ngIf="detailEnrollments.length > 0" class="pd-table-wrap">
+          <table class="pd-table">
+            <thead>
+              <tr>
+                <th style="width:45%">Protocol</th>
+                <th style="width:15%">Site</th>
+                <th style="width:20%">Enrolled</th>
+                <th style="width:20%">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let e of detailEnrollments">
+                <td class="pd-cell-protocol">{{ e.protocolTitle || '—' }}</td>
+                <td class="pd-cell-muted">{{ e.siteName || '—' }}</td>
+                <td class="pd-cell-muted">{{ e.enrolledAt | date:'dd MMM yyyy' }}</td>
+                <td>
+                  <span class="pl-status-badge" [ngClass]="getStatusDotClass(e.enrollmentStatus)">
+                    <span class="pl-dot"></span>{{ e.enrollmentStatus }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div *ngIf="detailEnrollments.length === 0" class="pd-empty">
+          No enrollment records found.
+        </div>
+
+      </ng-container>
+    </div>
+  </div>
+
+  <!-- Deactivate confirm modal -->
+  <div class="modal-backdrop" [class.open]="showDeactivateConfirm" style="z-index:600">
+    <div class="modal" style="max-width:420px">
+      <div class="modal-head">
+        <div class="modal-title" style="color:#DC2626">Confirm deactivation</div>
+        <div (click)="showDeactivateConfirm=false" class="modal-close-btn">&times;</div>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:13px;color:#374151;margin:0;line-height:1.7">
+          Are you sure you want to deactivate <b>{{ detailPatient?.name }}</b>?
+        </p>
+        <div style="margin-top:12px;padding:10px 12px;background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;font-size:12px;color:#991B1B">
+          Any active enrollment will be automatically withdrawn. This action cannot be undone.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-sm" style="background:#DC2626;color:#fff;border-color:#DC2626"
+                (click)="executeDeactivate()">Yes, deactivate</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div class="modal-backdrop" [class.open]="showEditModal">
+    <div class="modal" style="max-width:480px">
+      <div class="modal-head">
+        <div class="modal-title">Edit patient</div>
+        <div (click)="closeEditModal()" class="modal-close-btn">&times;</div>
+      </div>
+      <div class="modal-body">
+        <div class="mfield"><label>Full name</label>
+          <input type="text" [(ngModel)]="editPatient.name"
+                 placeholder="e.g. John Doe" class="modal-input"></div>
+        <div class="mfield"><label>Date of birth</label>
+          <input type="date" [(ngModel)]="editPatient.dateOfBirth"
+                 class="modal-input"></div>
+        <div class="mfield">
+          <label>Email address</label>
+          <input type="email" [(ngModel)]="editPatient.contactInfo"
+                 placeholder="e.g. john@email.com" class="modal-input"
+                 (input)="editPatient.contactInfo = editPatient.contactInfo?.toLowerCase()">
+          <div style="font-size:11px;color:#9CA3AF;margin-top:4px">
+            Only valid email addresses are accepted
+          </div>
+        </div>
+        <div *ngIf="editError"
+             style="padding:9px 12px;background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;font-size:12px;color:#DC2626;font-weight:500;margin-top:4px">
+          {{ editError }}
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" (click)="saveEdit()">Save changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Enroll Modal -->
+  <div class="modal-backdrop" [class.open]="showEnrollModal">
+    <div class="modal" style="max-width:480px">
+      <div class="modal-head">
+        <div class="modal-title">
+          {{ enrollingPatient?.enrollmentStatus === 'Not enrolled' ? 'Enroll' : 'Re-enroll' }}
+          — {{ enrollingPatient?.name }}
+        </div>
+        <div (click)="closeEnrollModal()" class="modal-close-btn">&times;</div>
+      </div>
+      <div class="modal-body">
+        <div class="mfield"><label>Protocol</label>
+          <select [(ngModel)]="selectedProtocolId" (ngModelChange)="onProtocolChange()" class="modal-select">
+            <option value="">— select protocol —</option>
+            <option *ngFor="let p of protocols" [value]="p.protocolId">{{ p.title }}</option>
+          </select></div>
+        <div class="mfield"><label>Site</label>
+          <select [(ngModel)]="selectedSiteId"
+                  [disabled]="!selectedProtocolId || sites.length === 0" class="modal-select">
+            <option value="">— select site —</option>
+            <option *ngFor="let s of sites" [value]="s.protocolSiteId">{{ s.siteName }}</option>
+          </select></div>
+        <div *ngIf="enrollErrorMessage" class="enroll-error-box">{{ enrollErrorMessage }}</div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary"
+                [disabled]="!selectedProtocolId || !selectedSiteId"
+                (click)="saveEnroll()">Save enrollment</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Withdraw Modal — same style as Confirm Deactivation -->
+  <div class="modal-backdrop" [class.open]="showWithdrawModal">
+    <div class="modal" style="max-width:420px">
+      <div class="modal-head">
+        <div class="modal-title" style="color:#DC2626;font-size:16px;font-weight:700">Confirm withdrawal</div>
+        <div (click)="closeWithdrawModal()" class="modal-close-btn">&times;</div>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:14px;color:#374151;margin:0 0 14px;line-height:1.6">
+          Are you sure you want to withdraw <b>{{ withdrawingPatient?.name }}</b>?
+        </p>
+        <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;padding:12px 14px;font-size:13px;color:#991B1B;line-height:1.5">
+          Any scheduled visits will be cancelled and this enrollment will be marked as <b>Withdrawn</b>.
+          This cannot be undone.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-sm"
+                style="background:#DC2626;color:#fff;border-color:#DC2626;padding:8px 20px;font-size:13px;font-weight:600"
+                (click)="confirmWithdraw()">
+          Yes, withdraw
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>

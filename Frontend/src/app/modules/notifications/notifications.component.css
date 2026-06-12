@@ -1,0 +1,27 @@
+/* Styles inherited from global styles.css */
+
+.notif-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 12px;
+  border-bottom: 2px solid #e5e7eb;
+  padding-bottom: 0;
+}
+.notif-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  font-family: inherit;
+}
+.notif-tab:hover { color: #1b3a2d; }
+.notif-tab.active { color: #1b3a2d; border-bottom-color: #1b3a2d; font-weight: 600; }

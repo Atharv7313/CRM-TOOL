@@ -1,0 +1,102 @@
+<div class="cp-wrap">
+
+  <!-- ── Back header ───────────────────────────────────────── -->
+  <div class="back-header">
+    <button class="back-btn" (click)="cancel()">
+      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clip-rule="evenodd"/></svg>
+      Back to Protocols
+    </button>
+    <nav class="breadcrumb-nav">
+      <span>Protocols</span>
+      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>
+      <span class="crumb-active">Create New Protocol</span>
+    </nav>
+  </div>
+
+  <!-- ── Form Card ─────────────────────────────────────────── -->
+  <div class="form-card">
+
+    <!-- Card Header -->
+    <div class="card-head">
+      <div class="card-head-inner">
+        <div class="card-head-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 12h6M9 16h6M13 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V8l-7-5z"/><path d="M13 3v5h5"/></svg>
+        </div>
+        <div>
+          <h2 class="card-title">New Clinical Trial Protocol</h2>
+          <p class="card-sub">Fill in the details below to register a new clinical trial protocol.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alerts -->
+    <div class="form-alert success" *ngIf="success">
+      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+      {{ success }} Redirecting...
+    </div>
+    <div class="form-alert error" *ngIf="error">
+      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+      {{ error }}
+    </div>
+
+    <!-- Form -->
+    <form [formGroup]="form" (ngSubmit)="submit()" class="cp-form">
+
+      <!-- Title -->
+      <div class="field full">
+        <label>Protocol Title <span class="req">*</span></label>
+        <input type="text" formControlName="title"
+          placeholder="e.g. Vaccine Efficacy Trial — Phase 2"/>
+        <span class="ferr" *ngIf="f['title'].touched && f['title'].invalid">
+          Title is required (max 200 characters).
+        </span>
+      </div>
+
+      <!-- Phase -->
+      <div class="field">
+        <label>Phase <span class="req">*</span></label>
+        <select formControlName="phase">
+          <option [ngValue]="''" disabled>Select phase...</option>
+          <option *ngFor="let p of phases" [value]="p">{{ p }}</option>
+        </select>
+        <span class="ferr" *ngIf="f['phase'].touched && f['phase'].invalid">Please select a phase.</span>
+      </div>
+
+      <!-- Start + End Date -->
+      <div class="field-row">
+        <div class="field">
+          <label>Start Date <span class="req">*</span></label>
+          <input type="date" formControlName="startDate"/>
+          <span class="ferr" *ngIf="f['startDate'].touched && f['startDate'].invalid">Start date is required.</span>
+        </div>
+        <div class="field">
+          <label>End Date <span class="req">*</span></label>
+          <input type="date" formControlName="endDate" [min]="minEndDate"/>
+          <span class="ferr" *ngIf="f['endDate'].touched && f['endDate'].invalid">End date is required.</span>
+        </div>
+      </div>
+      <span class="ferr" *ngIf="form.errors?.['dateRange'] && f['startDate'].touched && f['endDate'].touched">
+        End date must be after start date.
+      </span>
+
+      <!-- Description -->
+      <div class="field full">
+        <label>Description <span class="opt">(optional)</span></label>
+        <textarea formControlName="description" rows="4"
+          placeholder="Provide a brief summary of the protocol objectives, methodology, and expected outcomes..."></textarea>
+        <span class="char-count">{{ form.get('description')?.value?.length ?? 0 }} / 4000</span>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <button type="button" class="btn-cancel" (click)="clear()">Clear</button>
+        <button type="submit" class="btn-submit" [disabled]="loading">
+          <span class="spinner-sm" *ngIf="loading"></span>
+          <svg *ngIf="!loading" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+          <span>{{ loading ? 'Creating Protocol...' : 'Create Protocol' }}</span>
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>

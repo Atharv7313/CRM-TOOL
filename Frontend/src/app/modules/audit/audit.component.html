@@ -1,0 +1,98 @@
+<div class="content">
+  <div class="access-denied" *ngIf="!isAdmin">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    <h3>Access Restricted</h3>
+    <p>Only administrators can view the audit log.</p>
+  </div>
+
+  <ng-container *ngIf="isAdmin">
+    <div class="audit-toolbar">
+      <div>
+        <h3 class="section-title">Activity Audit Log</h3>
+        <p class="section-sub">All platform events across every service — in real time.</p>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <select [ngModel]="serviceFilter" (change)="onServiceChange($event)" class="audit-service-select">
+          <option value="">All services</option>
+          <option *ngFor="let s of services" [value]="s">{{ s }}</option>
+        </select>
+        <div class="audit-filter-wrap">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/></svg>
+          <input type="text" [value]="auditFilter" (input)="onTextInput($event)" (keyup.enter)="onFilterChange()" placeholder="Filter by name, email, or action..."/>
+        </div>
+        <button class="audit-search-btn" (click)="onFilterChange()">Search</button>
+      </div>
+    </div>
+
+    <div class="loading-row" *ngIf="auditLoading">
+      <div class="spinner-lg"></div>
+      <span>Loading audit log...</span>
+    </div>
+
+    <div class="section-card" *ngIf="!auditLoading">
+      <div class="section-header">
+        <h4>Events</h4>
+        <span class="section-badge">{{ filteredAuditLogs.length }} records</span>
+      </div>
+      <div class="table-wrap table-wrap--scroll">
+        <table>
+          <thead class="thead-sticky">
+            <tr>
+              <th>Timestamp</th>
+              <th>Service</th>
+              <th>Actor</th>
+              <th>Action</th>
+              <th>Description</th>
+              <th>Entity</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let log of filteredAuditLogs">
+              <td class="muted audit-time">{{ log.createdAt + 'Z' | date:'dd MMM yyyy, HH:mm:ss' }}</td>
+              <td>
+                <span class="action-badge"
+                  [style.background]="serviceColor(log.serviceName)"
+                  [style.color]="serviceTextColor(log.serviceName)">
+                  {{ log.serviceName }}
+                </span>
+              </td>
+              <td>
+                <div class="td-user">
+                  <div class="td-avatar">{{ avatarFor(log.actorName) }}</div>
+                  <div class="actor-meta">
+                    <span class="user-name">{{ log.actorName }}</span>
+                    <span class="actor-email">{{ log.actorEmail || '—' }}</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="action-badge"
+                  [style.background]="actionColor(log.action)"
+                  [style.color]="actionTextColor(log.action)">
+                  {{ log.action }}
+                </span>
+              </td>
+              <td class="audit-desc">{{ log.description || '—' }}</td>
+              <td class="muted">{{ log.entityName || '—' }}</td>
+              <td>
+                <span class="status-badge" [class.active]="log.isSuccess" [class.offline]="!log.isSuccess">
+                  <span class="status-dot"></span>{{ log.isSuccess ? 'Success' : 'Failed' }}
+                </span>
+              </td>
+            </tr>
+            <tr *ngIf="filteredAuditLogs.length === 0 && !auditLoading && !auditFailed">
+              <td colspan="7" class="empty-row">No audit events found.</td>
+            </tr>
+            <tr *ngIf="auditFailed && !auditLoading">
+              <td colspan="7" class="empty-row">
+                AuditLogService is not reachable.
+                <button class="retry-btn" (click)="loadAuditLogs()">Retry</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </ng-container>
+</div>

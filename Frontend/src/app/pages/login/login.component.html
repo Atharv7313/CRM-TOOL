@@ -1,0 +1,190 @@
+ <div class="page">
+
+  <!-- ── Left panel ── -->
+  <div class="left-panel">
+
+    <div class="brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.8" stroke-linecap="round">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+      </div>
+      <span class="brand-name">LifeSci360</span>
+    </div>
+
+    <p class="tag">RESEARCH PLATFORM</p>
+
+    <h1 class="headline">
+      Science<br>meets<br><em>clarity.</em>
+    </h1>
+
+    <p class="desc">
+      Manage clinical trials and lab workflows from a single, unified workspace.
+    </p>
+
+    <ul class="features">
+      <li><span class="feat-dot green"></span>HIPAA &amp; GxP compliant</li>
+      <li><span class="feat-dot yellow"></span>Real-time lab sync</li>
+      <li><span class="feat-dot pink"></span>Multi-site collaboration</li>
+    </ul>
+
+  </div>
+
+  <!-- ── Right panel ── -->
+  <div class="right-panel">
+    <div class="form-card">
+
+      <div class="card-header" style="text-align:center;">
+        <h2 >Welcome back!!</h2>
+        <p>Sign in to continue</p>
+      </div>
+
+      <div class="alert" *ngIf="errorMessage">
+        <svg viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+        </svg>
+        {{ errorMessage }}
+      </div>
+
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+
+        <div class="field">
+          <label for="email">Email address</label>
+          <div class="input-wrap" [class.has-error]="email?.touched && email?.invalid">
+            <input
+              id="email"
+              type="email"
+              formControlName="email"
+              placeholder="you@example.com"
+              autocomplete="email"
+            />
+          </div>
+          <span class="field-error" *ngIf="email?.touched && email?.errors?.['required']">Required</span>
+          <span class="field-error" *ngIf="email?.touched && email?.errors?.['email']">Invalid email</span>
+        </div>
+
+        <div class="field">
+          <label for="password">Password</label>
+          <div class="input-wrap pw-wrap" [class.has-error]="password?.touched && password?.invalid">
+            <input
+              id="password"
+              [type]="showPassword ? 'text' : 'password'"
+              formControlName="password"
+              placeholder="••••••••••"
+              autocomplete="current-password"
+            />
+            <button type="button" class="eye-btn" (click)="togglePassword()" tabindex="-1">
+              <svg *ngIf="!showPassword" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              </svg>
+              <svg *ngIf="showPassword" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17.94 17.94A10.07 10.07 0 0112 20c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+              </svg>
+            </button>
+          </div>
+          <span class="field-error" *ngIf="password?.touched && password?.invalid">Required</span>
+        </div>
+
+        <button type="submit" class="btn-signin" [disabled]="loginForm.invalid || loading">
+          <span class="spinner" *ngIf="loading"></span>
+          <span>{{ loading ? 'Signing in...' : 'Sign in' }}</span>
+        </button>
+
+      </form>
+
+      <div class="forgot-row" style="display:none">
+        <button type="button" class="forgot-link" (click)="openForgotModal()">Forgot password?</button>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- ── Forgot Password Modal ── -->
+<div class="modal-overlay" *ngIf="showForgotModal" (click)="closeForgotModal()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <h3>Reset Password</h3>
+      <button type="button" class="modal-close" (click)="closeForgotModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Success state -->
+    <div class="modal-success" *ngIf="forgotSuccess">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+        <polyline points="22 4 12 14.01 9 11.01"/>
+      </svg>
+      <p>Password updated successfully!</p>
+      <p class="modal-success-sub">You can now sign in with your new password.</p>
+      <button type="button" class="btn-modal-primary" (click)="closeForgotModal()">Back to Sign In</button>
+    </div>
+
+    <!-- Form state -->
+    <form [formGroup]="forgotForm" (ngSubmit)="submitForgotPassword()" *ngIf="!forgotSuccess">
+
+      <div class="modal-alert" *ngIf="forgotError">
+        <svg viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+        </svg>
+        {{ forgotError }}
+      </div>
+
+      <div class="field">
+        <label>Email address</label>
+        <div class="input-wrap" [class.has-error]="forgotEmail?.touched && forgotEmail?.invalid">
+          <input type="email" formControlName="email" placeholder="you@example.com" autocomplete="email"/>
+        </div>
+        <span class="field-error" *ngIf="forgotEmail?.touched && forgotEmail?.errors?.['required']">Required</span>
+        <span class="field-error" *ngIf="forgotEmail?.touched && forgotEmail?.errors?.['email']">Invalid email</span>
+      </div>
+
+      <div class="field">
+        <label>New Password</label>
+        <div class="input-wrap pw-wrap" [class.has-error]="newPassword?.touched && newPassword?.invalid">
+          <input [type]="showNewPassword ? 'text' : 'password'" formControlName="newPassword" placeholder="Min. 6 characters"/>
+          <button type="button" class="eye-btn" (click)="showNewPassword = !showNewPassword" tabindex="-1">
+            <svg *ngIf="!showNewPassword" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+              <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+            </svg>
+            <svg *ngIf="showNewPassword" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17.94 17.94A10.07 10.07 0 0112 20c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+            </svg>
+          </button>
+        </div>
+        <span class="field-error" *ngIf="newPassword?.touched && newPassword?.errors?.['required']">Required</span>
+        <span class="field-error" *ngIf="newPassword?.touched && newPassword?.errors?.['minlength']">At least 6 characters</span>
+      </div>
+
+      <div class="field">
+        <label>Confirm Password</label>
+        <div class="input-wrap pw-wrap" [class.has-error]="confirmPassword?.touched && (confirmPassword?.invalid || forgotForm.errors?.['passwordMismatch'])">
+          <input [type]="showConfirmPassword ? 'text' : 'password'" formControlName="confirmPassword" placeholder="Re-enter password"/>
+          <button type="button" class="eye-btn" (click)="showConfirmPassword = !showConfirmPassword" tabindex="-1">
+            <svg *ngIf="!showConfirmPassword" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+              <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+            </svg>
+            <svg *ngIf="showConfirmPassword" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17.94 17.94A10.07 10.07 0 0112 20c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+            </svg>
+          </button>
+        </div>
+        <span class="field-error" *ngIf="confirmPassword?.touched && forgotForm.errors?.['passwordMismatch']">Passwords do not match</span>
+      </div>
+
+      <button type="submit" class="btn-modal-primary" [disabled]="forgotLoading">
+        <span class="spinner" *ngIf="forgotLoading"></span>
+        <span>{{ forgotLoading ? 'Updating...' : 'Update Password' }}</span>
+      </button>
+
+    </form>
+  </div>
+</div>

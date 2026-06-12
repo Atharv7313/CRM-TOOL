@@ -1,0 +1,285 @@
+<div class="page">
+
+  <!-- Toast -->
+  <div class="toast" [ngClass]="'toast-' + toastType" [class.show]="toastVisible">
+    <i class="ti ti-circle-check"></i>
+    <span>{{ toastMessage }}</span>
+  </div>
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="btn btn-sm" (click)="goBack()">
+        <i class="ti ti-arrow-left" style="font-size:13px"></i> Back
+      </button>
+      <span class="page-title">Mark Today's Visits</span>
+    </div>
+    <span class="topbar-date">
+      {{ today | date:'EEEE, dd MMM yyyy' }}
+    </span>
+  </div>
+
+  <!-- Filters card -->
+  <div class="card">
+    <div class="card-head">
+      <span class="card-title">
+        <i class="ti ti-filter" style="font-size:14px;margin-right:6px;color:#185FA5"></i>
+        Select protocol &amp; site
+      </span>
+    </div>
+    <div class="filter-panel">
+      <!-- Search box -->
+      <div class="fg">
+        <div class="page-search-wrap">
+          <svg class="page-search-icon" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
+          </svg>
+          <input type="search" [(ngModel)]="searchQuery"
+                 placeholder="Search by patient name…"
+                 class="page-search-input">
+        </div>
+      </div>
+      <div class="fg">
+        <span class="fl">Protocol</span>
+        <select [(ngModel)]="reviewProtocolId" (ngModelChange)="onProtocolChange()"
+                class="select-protocol">
+          <option value="">— select protocol —</option>
+          <option *ngFor="let p of protocols" [value]="p.protocolId">{{ p.title }}</option>
+        </select>
+      </div>
+      <div class="fg">
+        <span class="fl">Site</span>
+        <select [(ngModel)]="reviewSiteId"
+                [disabled]="!reviewProtocolId || reviewSites.length === 0"
+                class="select-site">
+          <option value="">— select site —</option>
+          <option *ngFor="let s of reviewSites" [value]="s.protocolSiteId">{{ s.siteName }}</option>
+        </select>
+      </div>
+      <div class="fg">
+        <span class="fl">Date</span>
+        <input type="date" [(ngModel)]="reviewDate" class="select-date" [max]="todayDate">
+      </div>
+      <button class="btn btn-primary btn-sm btn-toolbar"
+              (click)="loadVisits()">
+        <i class="ti ti-filter" style="font-size:12px"></i> Apply
+      </button>
+      <button class="btn btn-sm btn-toolbar"
+              style="border:1px solid #1b3a2d;color:#1b3a2d;background:#fff"
+              (click)="resetFilters()">
+        <i class="ti ti-x" style="font-size:12px"></i> Clear
+      </button>
+    </div>
+  </div>
+
+  <!-- Visits table -->
+  <div class="card" *ngIf="reviewVisits.length > 0">
+    <div class="card-head">
+      <div>
+        <span class="card-title">
+          <i class="ti ti-clipboard-check" style="font-size:14px;margin-right:6px;color:#1E40AF"></i>
+          Scheduled visits
+        </span>
+        <div class="visit-subtitle">
+          Check patients who attended — unchecked will be marked as Missed
+        </div>
+      </div>
+      <div class="attendance-summary">
+        <span class="attendance-info">
+          <span class="attended-count">{{ attendedIds.length }}</span> attended ·
+          <span class="missed-count">{{ reviewVisits.length - attendedIds.length }}</span> will be missed
+        </span>
+      </div>
+    </div>
+
+    <table>
+      <colgroup>
+        <col style="width:44px">
+        <col style="width:160px">
+        <col style="width:220px">
+        <col style="width:120px">
+        <col style="width:130px">
+        <col style="width:110px">
+      </colgroup>
+      <thead>
+        <tr>
+          <th>
+            <input type="checkbox"
+                   (change)="toggleAll($event)"
+                   [checked]="attendedIds.length === reviewVisits.length && reviewVisits.length > 0">
+          </th>
+          <th>Patient name</th>
+          <th>Current visit</th>
+          <th>Site</th>
+          <th>Scheduled date</th>
+          <th>Outcome</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let v of pagedVisits"
+            [style.background]="isAttended(v) ? '#F0FDF4' : ''"
+            style="cursor:pointer"
+            (click)="toggleAttended(v)">
+          <td class="attendance-check-cell" (click)="$event.stopPropagation()">
+            <input type="checkbox"
+                   [checked]="isAttended(v)"
+                   (change)="toggleAttended(v)"
+                   class="attendance-checkbox">
+          </td>
+          <td>
+            <div class="cell cell-name">{{ v.patientName }}</div>
+          </td>
+          <td>
+            <div class="visit-name-row">
+              <span class="visit-step-counter">
+                {{ v.visitNumber || 1 }} / {{ v.totalVisits || 1 }}
+              </span>
+              <div>
+                <div class="visit-name-text">{{ v.visitName }}</div>
+                <div class="visit-protocol-text">{{ v.protocolTitle }}</div>
+              </div>
+            </div>
+          </td>
+          <td><div class="cell">{{ v.siteName || '—' }}</div></td>
+          <td><div class="cell">{{ v.visitDate | date:'dd MMM yyyy' }}</div></td>
+          <td>
+            <div class="cell">
+              <span *ngIf="isAttended(v)" class="badge b-active badge-xs">
+                <i class="ti ti-check" style="font-size:10px"></i> Attended
+              </span>
+              <span *ngIf="!isAttended(v)" class="badge b-withdrawn badge-xs">
+                Will be missed
+              </span>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Pagination bar -->
+    <div *ngIf="reviewVisits.length > pageSize" class="pagination-bar">
+      <span class="pagination-info">
+        Showing {{ pageStart }}–{{ pageEnd }} of {{ reviewVisits.length }} visits
+      </span>
+      <div class="pagination-controls">
+        <button (click)="goToPage(currentPage - 1)"
+                [disabled]="currentPage === 1"
+                class="page-btn"
+                [style.opacity]="currentPage === 1 ? '0.38' : '1'">
+          ‹
+        </button>
+        <ng-container *ngFor="let pg of pageNumbers">
+          <span *ngIf="pg === -1" class="page-ellipsis">…</span>
+          <button *ngIf="pg !== -1"
+                  (click)="goToPage(pg)"
+                  class="page-number-btn"
+                  [style.background]="pg === currentPage ? '#185FA5' : '#fff'"
+                  [style.color]="pg === currentPage ? '#fff' : '#374151'"
+                  [style.border-color]="pg === currentPage ? '#185FA5' : '#E5E7EB'">
+            {{ pg }}
+          </button>
+        </ng-container>
+        <button (click)="goToPage(currentPage + 1)"
+                [disabled]="currentPage === totalPages"
+                class="page-btn"
+                [style.opacity]="currentPage === totalPages ? '0.38' : '1'">
+          ›
+        </button>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="table-footer">
+      <span class="footer-info">
+        {{ reviewVisits.length }} visit{{ reviewVisits.length !== 1 ? 's' : '' }} scheduled
+      </span>
+      <div class="footer-actions">
+        <button class="btn btn-primary" (click)="openConfirmModal()">
+          <i class="ti ti-device-floppy"></i> Save review
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty state after search -->
+  <div class="card" *ngIf="reviewVisits.length === 0 && searched">
+    <div class="empty-state-body">
+      <i class="ti ti-calendar-off empty-state-icon"></i>
+      <div class="empty-state-title">No scheduled visits found</div>
+      <div class="empty-state-sub">Try selecting a different protocol, site, or date.</div>
+    </div>
+  </div>
+
+  <!-- Initial state -->
+  <div class="card" *ngIf="reviewVisits.length === 0 && !searched">
+    <div class="empty-state-body">
+      <i class="ti ti-clipboard-list empty-state-icon"></i>
+      <div class="empty-state-title">Select filters above and click Apply</div>
+      <div class="empty-state-sub">Choose a protocol and site to see today's scheduled visits.</div>
+    </div>
+  </div>
+
+  <!-- Save Review Confirmation Modal -->
+  <div *ngIf="showConfirmModal" class="modal-overlay">
+    <div class="modal-inner">
+
+      <div class="modal-head">
+        <div class="modal-title">
+          <i class="ti ti-clipboard-check" style="font-size:15px;color:#185FA5"></i>
+          Confirm attendance — {{ reviewDate | date:'dd MMM yyyy' }}
+        </div>
+        <div (click)="closeConfirmModal()" class="modal-close-btn">
+          &times;
+        </div>
+      </div>
+
+      <div class="modal-body modal-body-col">
+
+        <!-- Attended block -->
+        <div class="confirm-attended-block">
+          <div class="confirm-attended-title">
+            <i class="ti ti-circle-check" style="font-size:13px;vertical-align:middle;margin-right:5px"></i>
+            {{ attendedIds.length }} patient{{ attendedIds.length !== 1 ? 's' : '' }} attended — will be marked Completed
+          </div>
+          <div *ngIf="attendedIds.length > 0" class="confirm-attended-list">
+            <span *ngFor="let v of attendedVisits; let last = last">
+              {{ v.patientName }}{{ !last ? ', ' : '' }}
+            </span>
+          </div>
+          <div *ngIf="attendedIds.length === 0" class="confirm-none-text">
+            No patients marked as attended.
+          </div>
+        </div>
+
+        <!-- Missed block -->
+        <div *ngIf="missedVisits.length > 0" class="confirm-missed-block">
+          <div class="confirm-missed-title">
+            <i class="ti ti-alert-triangle" style="font-size:13px;vertical-align:middle;margin-right:5px"></i>
+            {{ missedVisits.length }} patient{{ missedVisits.length !== 1 ? 's' : '' }} will be marked Missed
+          </div>
+          <div class="confirm-missed-list">
+            <span *ngFor="let v of missedVisits; let last = last">
+              {{ v.patientName }}{{ !last ? ', ' : '' }}
+            </span>
+          </div>
+        </div>
+
+        <!-- All attended -->
+        <div *ngIf="missedVisits.length === 0" class="confirm-all-attended">
+          <i class="ti ti-checks" style="font-size:12px;vertical-align:middle;margin-right:5px"></i>
+          All patients attended — no missed visits.
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-sm" (click)="closeConfirmModal()">Go back</button>
+        <button class="btn btn-primary" (click)="confirmAndSave()">
+          <i class="ti ti-device-floppy"></i> Confirm &amp; save
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+</div>

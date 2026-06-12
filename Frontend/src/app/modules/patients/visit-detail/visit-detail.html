@@ -1,0 +1,197 @@
+<div class="page">
+
+  <div class="toast" [ngClass]="'toast-' + toastType" [class.show]="toastVisible">
+    <span>{{ toastMessage }}</span>
+  </div>
+
+  <!-- Back button — no white bg box -->
+  <div style="padding:4px 0 8px">
+    <button class="btn btn-sm" (click)="goBack()">← Back</button>
+  </div>
+
+  <!-- Add visit form -->
+  <div class="vd-center-card" *ngIf="showAddVisit && isActiveEnrollment" style="margin-bottom:0;border-radius:12px 12px 0 0;border-bottom:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid #f0ece6">
+      <span style="font-size:13px;font-weight:700;color:#1a1a1a">Add new visit</span>
+      <div (click)="showAddVisit = false" class="modal-close-btn">&times;</div>
+    </div>
+    <!-- Fields row — align-items:center keeps Save button vertically centred with inputs -->
+    <div style="padding:16px 24px 8px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <span class="fl">Visit name</span>
+        <input type="text" [(ngModel)]="newVisitName"
+               placeholder="e.g. Week 4 Follow-up"
+               [style.border-color]="addVisitNameError ? '#F09595' : '#D1D5DB'"
+               style="width:220px;height:36px;font-size:13px;border-radius:8px;border:1px solid;padding:0 10px">
+        <span style="font-size:11px;color:#DC2626;min-height:16px;display:block">
+          {{ addVisitNameError }}
+        </span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <span class="fl">Visit date</span>
+        <input type="date" [(ngModel)]="newVisitDate"
+               [min]="minVisitDate" [max]="maxVisitDate"
+               [style.border-color]="addVisitDateError ? '#F09595' : '#D1D5DB'"
+               style="width:160px;height:36px;font-size:13px;border-radius:8px;border:1px solid;padding:0 10px">
+        <span style="font-size:11px;color:#DC2626;min-height:16px;display:block">
+          {{ addVisitDateError }}
+        </span>
+      </div>
+      <!-- Save button: centred with inputs via parent align-items:center -->
+      <button class="btn btn-primary btn-sm" style="height:36px" (click)="saveAddVisit()">Save</button>
+    </div>
+  </div>
+
+  <!-- Main centered card -->
+  <div class="vd-center-card">
+
+    <!-- Patient name + Add visit button in top right of card -->
+    <div class="pd-name-row">
+      <div>
+        <div class="pd-name">{{ patientName }}</div>
+        <div style="display:flex;gap:16px;margin-top:4px;flex-wrap:wrap">
+          <span *ngIf="protocolTitle" style="font-size:12px;color:#6B7280;display:flex;align-items:center;gap:4px">
+            <svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="#9CA3AF" stroke-width="1.8"><rect x="3" y="2" width="14" height="16" rx="2"/><line x1="7" y1="7" x2="13" y2="7"/><line x1="7" y1="11" x2="13" y2="11"/><line x1="7" y1="15" x2="10" y2="15"/></svg>
+            {{ protocolTitle }}
+          </span>
+          <span *ngIf="siteName" style="font-size:12px;color:#6B7280;display:flex;align-items:center;gap:4px">
+            <svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="#9CA3AF" stroke-width="1.8"><path d="M10 2a6 6 0 016 6c0 4-6 10-6 10S4 12 4 8a6 6 0 016-6z"/><circle cx="10" cy="8" r="2"/></svg>
+            {{ siteName }}
+          </span>
+        </div>
+      </div>
+      <button *ngIf="isActiveEnrollment"
+              class="btn btn-primary btn-sm"
+              (click)="showAddVisit = !showAddVisit">
+        + Add visit
+      </button>
+    </div>
+
+    <!-- Stats strip -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid #f0ece6">
+      <div style="padding:14px 24px;border-right:1px solid #f0ece6">
+        <div class="pd-detail-label">Upcoming</div>
+        <div class="pd-detail-value" style="font-size:22px;color:#185FA5">{{ upcomingVisits.length }}</div>
+      </div>
+      <div style="padding:14px 24px">
+        <div class="pd-detail-label">Completed</div>
+        <div class="pd-detail-value" style="font-size:22px;color:#166534">{{ historyVisits.length }}</div>
+      </div>
+    </div>
+
+    <!-- Upcoming visits -->
+    <div class="pd-section-head" style="background:#F0FDF4">
+      <span class="pd-section-title" style="color:#166534">Upcoming visits</span>
+      <span class="pd-section-count" style="background:#DCFCE7;color:#166534">{{ upcomingVisits.length }}</span>
+    </div>
+
+    <div *ngIf="upcomingVisits.length > 0">
+      <table class="pd-table">
+        <thead>
+          <tr>
+            <th>Visit name</th>
+            <th>Scheduled date</th>
+            <th>Status</th>
+            <th *ngIf="isActiveEnrollment">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let v of upcomingVisits">
+            <td style="font-weight:500;color:#185FA5">{{ v.visitName }}</td>
+            <td>{{ v.visitDate | date:'dd MMM yyyy' }}</td>
+            <td><span class="badge" [ngClass]="getBadgeClass(v.visitStatus)">{{ v.visitStatus }}</span></td>
+            <td *ngIf="isActiveEnrollment">
+              <div style="display:flex;gap:6px">
+                <!-- Reschedule icon btn -->
+                <button class="pl-icon-btn" title="Reschedule" (click)="openReschedule(v)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </button>
+                <!-- Remove icon btn -->
+                <button class="pl-icon-btn pl-icon-danger" title="Remove" (click)="confirmRemove(v)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div *ngIf="upcomingVisits.length === 0" class="pd-empty">No upcoming visits scheduled.</div>
+
+    <!-- Gap between sections -->
+    <div style="height:10px;background:#f5f3ef"></div>
+
+    <!-- Visit history -->
+    <div class="pd-section-head" style="background:#EFF6FF">
+      <span class="pd-section-title" style="color:#1E40AF">Visit history</span>
+      <span class="pd-section-count" style="background:#DBEAFE;color:#1E40AF">{{ historyVisits.length }}</span>
+    </div>
+
+    <div *ngIf="historyVisits.length > 0">
+      <table class="pd-table">
+        <thead>
+          <tr>
+            <th>Visit name</th>
+            <th>Date</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let v of historyVisits">
+            <td style="font-weight:500;color:#6B7280">{{ v.visitName }}</td>
+            <td style="color:#6B7280;font-size:12px">{{ v.visitDate | date:'dd MMM yyyy' }}</td>
+            <td><span class="badge" [ngClass]="getBadgeClass(v.visitStatus)">{{ v.visitStatus }}</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div *ngIf="historyVisits.length === 0" class="pd-empty" style="border-bottom:none">No visit history yet.</div>
+
+  </div>
+
+  <!-- Reschedule Modal -->
+  <div *ngIf="showRescheduleModal"
+       style="position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px">
+    <div style="background:#fff;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,0.2);width:100%;max-width:380px;overflow:hidden">
+      <div class="modal-head">
+        <div class="modal-title">Reschedule — {{ rescheduleVisitName }}</div>
+        <div (click)="showRescheduleModal=false" class="modal-close-btn">&times;</div>
+      </div>
+      <div class="modal-body">
+        <div class="mfield">
+          <label>New date</label>
+          <input type="date" [(ngModel)]="rescheduleDate"
+                 [min]="minVisitDate" [max]="maxVisitDate"
+                 style="height:38px;width:100%;font-size:13px;border-radius:8px;border:1px solid #D1D5DB;padding:0 12px"
+                 (change)="rescheduleDateError=''">
+        </div>
+        <div *ngIf="rescheduleDateError"
+             style="padding:9px 12px;background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;font-size:12px;color:#DC2626;margin-top:8px">
+          {{ rescheduleDateError }}
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-amber" (click)="saveReschedule()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Remove Modal -->
+  <div *ngIf="showConfirmModal"
+       style="position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:600;display:flex;align-items:center;justify-content:center;padding:16px">
+    <div style="background:#fff;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,0.2);width:100%;max-width:400px;overflow:hidden">
+      <div class="modal-head">
+        <div class="modal-title" style="color:#DC2626">Confirm removal</div>
+        <div (click)="showConfirmModal=false" class="modal-close-btn">&times;</div>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:13px;color:#374151;margin:0;line-height:1.6">{{ confirmMessage }}</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-sm" style="background:#DC2626;color:#fff;border-color:#DC2626"
+                (click)="confirmAction && confirmAction()">Yes, remove</button>
+      </div>
+    </div>
+  </div>
+
+</div>

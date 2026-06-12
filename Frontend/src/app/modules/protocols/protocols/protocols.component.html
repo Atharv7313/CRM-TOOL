@@ -1,0 +1,510 @@
+<div class="proto-wrap">
+
+  <!-- ── Page Header ──────────────────────────────────────────── -->
+  <div class="page-header">
+    <div>
+      <h3 class="section-title">Protocols</h3>
+    </div>
+    <button class="btn-primary" (click)="goCreate()">
+      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>
+      Create Protocol
+    </button>
+  </div>
+
+  <!-- ── Stats Bar ─────────────────────────────────────────────── -->
+  <div class="stats-row">
+    <div class="stat-pill">
+      <div class="stat-top">
+        <div class="stat-icon-wrap" style="background:#e8f5e9; color:#2e7d32;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        </div>
+      </div>
+      <p class="pill-val">{{ stats.total }}</p>
+      <p class="pill-lbl">Total</p>
+    </div>
+    <div class="stat-pill">
+      <div class="stat-top">
+        <div class="stat-icon-wrap" style="background:#dbeafe; color:#1d4ed8;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+      </div>
+      <p class="pill-val">{{ stats.upcoming }}</p>
+      <p class="pill-lbl">Upcoming</p>
+    </div>
+    <div class="stat-pill">
+      <div class="stat-top">
+        <div class="stat-icon-wrap" style="background:#dcfce7; color:#15803d;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+      </div>
+      <p class="pill-val">{{ stats.ongoing }}</p>
+      <p class="pill-lbl">Ongoing</p>
+    </div>
+    <div class="stat-pill">
+      <div class="stat-top">
+        <div class="stat-icon-wrap" style="background:#f1f5f9; color:#64748b;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+      </div>
+      <p class="pill-val">{{ stats.completed }}</p>
+      <p class="pill-lbl">Completed</p>
+    </div>
+  </div>
+
+  <!-- ── Filter Bar ─────────────────────────────────────────────── -->
+  <div class="filter-bar">
+    <div class="filter-input">
+      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/></svg>
+      <input type="text" [(ngModel)]="searchTitle" placeholder="Search by title..." />
+    </div>
+    <select class="filter-select" [(ngModel)]="filterStatus">
+      <option value="">All Statuses</option>
+      <option value="UPCOMING">Upcoming</option>
+      <option value="ONGOING">Ongoing</option>
+      <option value="COMPLETED">Completed</option>
+    </select>
+    <div class="filter-input phase-input">
+      <input type="text" [(ngModel)]="filterPhase" placeholder="Filter by phase..." />
+    </div>
+    <button class="btn-ghost" (click)="clearFilters()" *ngIf="searchTitle || filterStatus || filterPhase">
+      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+      Clear
+    </button>
+  </div>
+
+  <!-- ── Loading ────────────────────────────────────────────────── -->
+  <div class="loading-row" *ngIf="loading">
+    <div class="spinner-lg"></div>
+    <span>Loading protocols...</span>
+  </div>
+
+  <!-- ── Error ──────────────────────────────────────────────────── -->
+  <div class="alert-error" *ngIf="error && !loading">
+    <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+    {{ error }}
+  </div>
+
+  <!-- ── Table ──────────────────────────────────────────────────── -->
+  <div class="section-card" *ngIf="!loading">
+    <div class="section-header">
+      <h4>All Protocols</h4>
+      <span class="section-badge">{{ filteredProtocols.length }} record{{ filteredProtocols.length !== 1 ? 's' : '' }}</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Phase</th>
+            <th>Status</th>
+            <th>Sites</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th class="th-actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of pagedProtocols">
+            <td>
+              <div class="proto-title-cell">
+                <span class="proto-name">{{ p.title }}</span>
+              </div>
+            </td>
+            <td>
+              <span class="phase-chip" [style.background]="phaseBg(p.phase)" [style.color]="phaseFg(p.phase)">{{ p.phase }}</span>
+            </td>
+            <td>
+              <span class="status-chip" [style.background]="statusBg(p.status)" [style.color]="statusFg(p.status)">
+                <span class="chip-dot"></span>{{ p.status }}
+              </span>
+            </td>
+            <td>
+              <span class="site-count-chip">
+                <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/></svg>
+                {{ p.siteCount }}
+              </span>
+            </td>
+            <td class="muted">{{ fmtDate(p.startDate) }}</td>
+            <td class="muted">{{ fmtDate(p.endDate) }}</td>
+            <td>
+              <div class="action-btns">
+                <button class="icon-btn view"   (click)="openView(p)"   title="View details">
+                  <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10z" clip-rule="evenodd"/></svg>
+                </button>
+                <button class="icon-btn edit"   (click)="openEdit(p)"   title="Edit protocol">
+                  <svg viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/></svg>
+                </button>
+                <button class="icon-btn assign" (click)="openAssign(p)" title="Assign site" [disabled]="p.status === 'COMPLETED' || p.status === 'DELETED'">
+                  <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/></svg>
+                </button>
+                <button class="icon-btn delete" (click)="openDelete(p)" title="Delete protocol">
+                  <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="filteredProtocols.length === 0">
+            <td colspan="7" class="empty-row">
+              <div class="empty-state">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12h6M9 16h6M13 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V8l-7-5z"/></svg>
+                <span>No protocols found.</span>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <!-- Pagination -->
+    <div class="pagination-bar" *ngIf="totalPages > 1">
+      <button class="pg-btn" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+      </button>
+      <button class="pg-btn" *ngFor="let p of pageNumbers"
+        [class.active]="p === currentPage" (click)="goToPage(p)">{{ p }}</button>
+      <button class="pg-btn" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>
+      </button>
+      <span class="pg-info">{{ (currentPage-1)*pageSize + 1 }}–{{ currentPage*pageSize > filteredProtocols.length ? filteredProtocols.length : currentPage*pageSize }} of {{ filteredProtocols.length }}</span>
+    </div>
+  </div>
+
+</div><!-- /proto-wrap -->
+
+
+<!-- ════════════════════════════════════════════════════════
+     VIEW DETAIL MODAL
+════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" *ngIf="viewProtocol" (click)="closeView()">
+  <div class="modal modal-lg" (click)="$event.stopPropagation()">
+
+    <div class="modal-head">
+      <div class="modal-head-left">
+        <div class="modal-icon" style="background:#dbeafe; color:#1d4ed8;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 12h6M9 16h6M13 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V8l-7-5z"/></svg>
+        </div>
+        <div>
+          <h3>{{ viewProtocol.title }}</h3>
+          <p>Protocol Details</p>
+        </div>
+      </div>
+      <button class="close-btn" (click)="closeView()">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div class="detail-item">
+          <span class="detail-lbl">Phase</span>
+          <span class="phase-chip" [style.background]="phaseBg(viewProtocol.phase)" [style.color]="phaseFg(viewProtocol.phase)">{{ viewProtocol.phase }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-lbl">Status</span>
+          <span class="status-chip" [style.background]="statusBg(viewProtocol.status)" [style.color]="statusFg(viewProtocol.status)">
+            <span class="chip-dot"></span>{{ viewProtocol.status }}
+          </span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-lbl">Start Date</span>
+          <span class="detail-val">{{ fmtDate(viewProtocol.startDate) }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-lbl">End Date</span>
+          <span class="detail-val">{{ fmtDate(viewProtocol.endDate) }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-lbl">Sites Assigned</span>
+          <span class="detail-val">{{ viewProtocol.siteCount }}</span>
+        </div>
+      </div>
+
+      <div class="detail-item full">
+        <span class="detail-lbl">Description</span>
+        <p class="detail-desc" *ngIf="viewProtocol.description">{{ viewProtocol.description }}</p>
+        <p class="no-desc"     *ngIf="!viewProtocol.description">No description provided.</p>
+      </div>
+
+      <!-- Assigned Sites List -->
+      <div class="view-sites-section">
+        <h4 class="view-sites-title">Assigned Sites</h4>
+        <div class="loading-row mini" *ngIf="viewSitesLoading">
+          <div class="spinner-sm-dark"></div><span>Loading sites...</span>
+        </div>
+        <div class="view-sites-list" *ngIf="!viewSitesLoading">
+          <div class="view-site-row" *ngFor="let s of viewSites">
+            <div class="site-dot-icon">
+              <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/></svg>
+            </div>
+            <div class="view-site-info">
+              <span class="view-site-name">{{ s.siteName }}</span>
+              <span class="view-site-loc" *ngIf="s.siteLocation">{{ s.siteLocation }}</span>
+            </div>
+            <div class="view-site-right">
+              <span class="view-site-inv">{{ s.investigatorName }}</span>
+              <span class="status-chip sm" [style.background]="assignStatusBg(s.status)" [style.color]="assignStatusFg(s.status)">{{ s.status }}</span>
+            </div>
+          </div>
+          <p class="no-sites" *ngIf="viewSites.length === 0">No sites assigned to this protocol yet.</p>
+        </div>
+      </div>
+    </div>
+
+
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════
+     EDIT MODAL  (centered popup, same style as view)
+════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" *ngIf="showEditModal" (click)="closeEdit()">
+  <div class="modal modal-lg" (click)="$event.stopPropagation()">
+
+    <div class="modal-head">
+      <div class="modal-head-left">
+        <div class="modal-icon" style="background:#e8f5e9; color:#1b3a2d;">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/></svg>
+        </div>
+        <div>
+          <h3>{{ editingProtocol?.title }}</h3>
+          <p>Edit Protocol</p>
+        </div>
+      </div>
+      <button class="close-btn" (click)="closeEdit()">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+      </button>
+    </div>
+
+    <form [formGroup]="editForm" (ngSubmit)="submitEdit()">
+      <div class="modal-body">
+
+        <div class="panel-alert success" *ngIf="editSuccess">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+          {{ editSuccess }}
+        </div>
+        <div class="panel-alert error" *ngIf="editError">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+          {{ editError }}
+        </div>
+
+        <!-- Title -->
+        <div class="field">
+          <label>Title <span class="req">*</span></label>
+          <input type="text" formControlName="title" placeholder="e.g. Vaccine Efficacy Trial"/>
+          <span class="ferr" *ngIf="editForm.get('title')?.touched && editForm.get('title')?.invalid">Title is required.</span>
+        </div>
+
+        <!-- Phase + current Status (read-only) side by side -->
+        <div class="field-row">
+          <div class="field">
+            <label>Phase <span class="req">*</span></label>
+            <select formControlName="phase">
+              <option value="" disabled>Select phase...</option>
+              <option value="Phase 1">Phase 1</option>
+              <option value="Phase 2">Phase 2</option>
+              <option value="Phase 3">Phase 3</option>
+              <option value="Phase 4">Phase 4</option>
+            </select>
+            <span class="ferr" *ngIf="editForm.get('phase')?.touched && editForm.get('phase')?.invalid">Phase is required.</span>
+          </div>
+          <div class="field">
+            <label>Status</label>
+            <div class="status-readonly-wrap">
+              <span class="status-chip"
+                [style.background]="statusBg(editingProtocol?.status || '')"
+                [style.color]="statusFg(editingProtocol?.status || '')">
+                <span class="chip-dot"></span>{{ editingProtocol?.status }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="field">
+          <label>Description <span class="opt">(optional)</span></label>
+          <textarea formControlName="description" rows="3" placeholder="Brief protocol description..."></textarea>
+        </div>
+
+        <!-- Start + End Date -->
+        <div class="field-row">
+          <div class="field">
+            <label>Start Date <span class="req">*</span></label>
+            <input type="date" formControlName="startDate"/>
+            <span class="ferr" *ngIf="editForm.get('startDate')?.touched && editForm.get('startDate')?.invalid">Required.</span>
+          </div>
+          <div class="field">
+            <label>End Date <span class="req">*</span></label>
+            <input type="date" formControlName="endDate" [min]="editMinEndDate"/>
+            <span class="ferr" *ngIf="editForm.get('endDate')?.touched && editForm.get('endDate')?.invalid">Required.</span>
+          </div>
+        </div>
+
+        <!-- Assigned Sites — remove from here -->
+        <div class="view-sites-section" *ngIf="editingProtocol && editingProtocol.siteCount > 0">
+          <h4 class="view-sites-title">Assigned Sites</h4>
+          <div class="view-sites-list">
+            <div class="view-site-row" *ngFor="let s of viewSites">
+              <div class="site-dot-icon">
+                <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/></svg>
+              </div>
+              <div class="view-site-info">
+                <span class="view-site-name">{{ s.siteName }}</span>
+                <span class="view-site-loc">{{ s.investigatorName }}</span>
+              </div>
+              <div class="view-site-right">
+                <button type="button" class="remove-assign-btn" (click)="removeSiteAssignment(s)"
+                  [disabled]="removingSiteId === s.protocolSiteId" title="Remove site">
+                  <span *ngIf="removingSiteId === s.protocolSiteId" class="spinner-sm-dark"></span>
+                  <svg *ngIf="removingSiteId !== s.protocolSiteId" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button type="submit" class="btn-primary" [disabled]="editLoading">
+          <span class="spinner-sm" *ngIf="editLoading"></span>
+          <span>{{ editLoading ? 'Saving...' : 'Save Changes' }}</span>
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════
+     ASSIGN SITE MODAL
+════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" *ngIf="showAssignModal" (click)="closeAssign()">
+  <div class="modal" (click)="$event.stopPropagation()">
+
+    <div class="modal-head">
+      <div class="modal-head-left">
+        <div class="modal-icon" style="background:#dcfce7; color:#15803d;">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/></svg>
+        </div>
+        <div>
+          <h3>Assign Site</h3>
+          <p>{{ assigningProtocol?.title }}</p>
+        </div>
+      </div>
+      <button class="close-btn" (click)="closeAssign()">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+      </button>
+    </div>
+
+    <form [formGroup]="assignForm" (ngSubmit)="submitAssign()">
+      <div class="modal-body">
+        <div class="panel-alert success" *ngIf="assignSuccess">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+          {{ assignSuccess }}
+        </div>
+        <div class="panel-alert error" *ngIf="assignError">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+          {{ assignError }}
+        </div>
+
+        <!-- Site dropdown -->
+        <div class="field">
+          <label>Select Site <span class="req">*</span></label>
+          <div class="loading-row mini" *ngIf="sitesLoading">
+            <div class="spinner-sm-dark"></div><span>Loading sites...</span>
+          </div>
+          <div class="custom-select" *ngIf="!sitesLoading">
+            <button type="button" class="custom-select-trigger" (click)="showSiteDropdown=!showSiteDropdown"
+              [class.open]="showSiteDropdown" [class.has-value]="assignForm.get('siteId')?.value">
+              <span>{{ getSelectedSiteName() }}</span>
+              <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+            </button>
+            <div class="custom-select-list" *ngIf="showSiteDropdown">
+              <div class="custom-select-option" *ngFor="let s of sortedSites"
+                (click)="selectSite(s)" [class.selected]="assignForm.get('siteId')?.value === s.siteId">
+                {{ s.name }}{{ s.location ? ' — ' + s.location : '' }}
+              </div>
+            </div>
+          </div>
+          <span class="ferr" *ngIf="assignForm.get('siteId')?.touched && assignForm.get('siteId')?.invalid">Please select a site.</span>
+        </div>
+
+        <!-- Investigator dropdown -->
+        <div class="field">
+          <label>Investigator <span class="req">*</span></label>
+          <div class="loading-row mini" *ngIf="investigatorsLoading">
+            <div class="spinner-sm-dark"></div><span>Loading investigators...</span>
+          </div>
+          <div class="custom-select" *ngIf="!investigatorsLoading">
+            <button type="button" class="custom-select-trigger" (click)="showInvDropdown=!showInvDropdown"
+              [class.open]="showInvDropdown" [class.has-value]="assignForm.get('investigatorUserId')?.value">
+              <span>{{ getSelectedInvName() }}</span>
+              <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+            </button>
+            <div class="custom-select-list" *ngIf="showInvDropdown">
+              <div class="custom-select-option" *ngFor="let inv of sortedInvestigators"
+                (click)="selectInvestigator(inv)" [class.selected]="assignForm.get('investigatorUserId')?.value === inv.userId">
+                {{ inv.name }} ({{ inv.email }})
+              </div>
+            </div>
+          </div>
+          <span class="ferr" *ngIf="assignForm.get('investigatorUserId')?.touched && assignForm.get('investigatorUserId')?.invalid">Please select an investigator.</span>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="submit" class="btn-primary" [disabled]="assignForm.invalid || assignLoading">
+          <span class="spinner-sm" *ngIf="assignLoading"></span>
+          <span>{{ assignLoading ? 'Assigning...' : 'Assign Site' }}</span>
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════
+     DELETE CONFIRM MODAL
+════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" *ngIf="showDeleteModal" (click)="closeDelete()">
+  <div class="modal modal-sm" (click)="$event.stopPropagation()">
+
+    <div class="modal-head">
+      <div class="modal-head-left">
+        <div class="modal-icon" style="background:#fee2e2; color:#991b1b;">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+        </div>
+        <div>
+          <h3>Delete Protocol</h3>
+          <p>This action cannot be undone.</p>
+        </div>
+      </div>
+      <button class="close-btn" (click)="closeDelete()">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="panel-alert error" *ngIf="deleteError">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+        {{ deleteError }}
+      </div>
+      <p class="confirm-text">
+        Are you sure you want to delete <strong>{{ deletingProtocol?.title }}</strong>?
+        All site assignments will be closed. This protocol will be marked as <strong>DELETED</strong>.
+      </p>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-danger" (click)="submitDelete()" [disabled]="deleteLoading">
+        <span class="spinner-sm white" *ngIf="deleteLoading"></span>
+        <span>{{ deleteLoading ? 'Deleting...' : 'Yes, Delete' }}</span>
+      </button>
+    </div>
+
+  </div>
+</div>

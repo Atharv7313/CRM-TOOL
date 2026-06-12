@@ -1,0 +1,19 @@
+<Solution>
+  <Folder Name="/Services/">
+    <Project Path="AuditService/AuditService.csproj" Id="30d37bf8-b56b-4632-83b5-17612d7ff94d" />
+    <Project Path="AuditLogService.API/AuditLogService.API.csproj" Id="a1b2c3d4-e5f6-7890-abcd-ef1234567890" />
+    <Project Path="AuthService/AuthService.csproj" Id="2fc35a05-57e0-4667-a788-cbcd8a51c728" />
+    <Project Path="NotificationService/NotificationService.csproj" Id="e753e891-5d87-4ee2-852c-091bff5115f2" />
+    <Project Path="PatientService/PatientService.csproj" Id="5a0ecf6f-b5d8-4a45-85b1-78f3cdded79e" />
+    <Project Path="ProtocolService/ProtocolService.csproj" Id="9fd3dc56-2738-47bc-a6d1-2e9df381883f" />
+    <Project Path="ReportingService/ReportingService.csproj" Id="7b3fb820-d394-45dd-bd3f-354ef669cae6" />
+    <Project Path="SampleService/SampleService.csproj" Id="7341821d-357c-4bb3-af5f-c962e5f4a33d" />
+    <Project Path="UserService/UserService.csproj" Id="d1ae2ab3-be87-4ff1-b046-ce7931820b0d" />
+  </Folder>
+  <Project Path="Frontend/Frontend.esproj">
+    <Build />
+    <Deploy />
+  </Project>
+  <Project Path="Gateway/Gateway.csproj" Id="20cee279-b8ad-4ea7-ad05-8f0cc205e8dd" />
+  <Project Path="Shared/Shared.csproj" Id="320a62ae-76ce-45d8-842a-17ccd06dae55" />
+</Solution>

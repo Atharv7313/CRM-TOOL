@@ -1,0 +1,184 @@
+<div class="page">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="btn btn-sm" (click)="goToDashboard()">← Back</button>
+      <span class="page-title">Add New Patient</span>
+    </div>
+  </div>
+
+  <!-- Centered form card -->
+  <div class="form-center">
+    <div class="form-card">
+
+      <!-- Card header -->
+      <div class="card-header">
+        <div>
+          <div class="card-header-title">Patient details</div>
+          <div class="card-header-subtitle">Fill in the fields below to register a new patient</div>
+        </div>
+        <button (click)="showBulkModal = true" class="btn-bulk-upload">
+          Bulk upload
+        </button>
+      </div>
+
+      <!-- Form fields -->
+      <div class="form-body">
+
+        <div class="field-group">
+          <label class="field-label">Full name <span style="color:#DC2626">*</span></label>
+          <input type="text" [(ngModel)]="name"
+                 placeholder="e.g. John Doe"
+                 class="field-input">
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Date of birth <span style="color:#DC2626">*</span></label>
+          <input type="date" [(ngModel)]="dateOfBirth"
+                 class="field-input"
+                 [max]="maxDob">
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Email address <span style="color:#DC2626">*</span></label>
+          <input type="email" [(ngModel)]="contactInfo"
+                 placeholder="e.g. john@email.com"
+                 class="field-input"
+                 (input)="contactInfo = contactInfo.toLowerCase()">
+        </div>
+
+        <!-- Error -->
+        <div *ngIf="errorMessage" class="error-box">
+          {{ errorMessage }}
+        </div>
+
+        <!-- Divider -->
+        <div class="form-divider"></div>
+
+        <!-- Actions -->
+        <div class="actions-row">
+          <button (click)="save()" class="btn-save">
+            Save patient
+          </button>
+          <button (click)="clearForm()" class="btn-cancel">
+            Clear
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Bulk Upload Modal ── -->
+  <div class="modal-backdrop" [class.open]="showBulkModal">
+    <div class="modal" style="max-width:500px">
+      <div class="modal-head">
+        <div class="modal-title">Bulk upload patients</div>
+        <div (click)="closeBulkModal()" class="modal-close-btn">
+          &times;
+        </div>
+      </div>
+
+      <div class="modal-body modal-body-col">
+
+        <div class="fg" *ngIf="!importSummary && !importing">
+          <span class="fl">Select CSV file</span>
+          <input type="file" accept=".csv" (change)="onFileSelected($event)"
+                 class="csv-file-input" #csvFileInput>
+        </div>
+
+        <div *ngIf="csvParseError" class="csv-error-box">
+          {{ csvParseError }}
+        </div>
+
+        <div *ngIf="csvPreview.length > 0 && !importSummary && !importing"
+             class="csv-preview-container">
+          <div class="csv-preview-header">
+            <b>{{ csvPreview.length }}</b> valid row{{ csvPreview.length !== 1 ? 's' : '' }} ready to import
+            <span *ngIf="parsedSkipped > 0" class="csv-skipped-note">
+              · {{ parsedSkipped }} row{{ parsedSkipped !== 1 ? 's' : '' }} skipped
+            </span>
+          </div>
+          <!-- Skipped rows with reasons -->
+          <div *ngIf="skippedRows.length > 0" style="margin-top:8px;background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;overflow:hidden">
+            <div style="padding:7px 12px;font-size:11px;font-weight:600;color:#DC2626;border-bottom:1px solid #FECACA">
+              Skipped rows — reasons:
+            </div>
+            <div *ngFor="let s of skippedRows"
+                 style="padding:5px 12px;font-size:11px;color:#991B1B;border-bottom:1px solid #FEE2E2;display:flex;gap:8px;align-items:baseline">
+              <span style="font-weight:600;min-width:80px">{{ s.name }}</span>
+              <span style="color:#DC2626">{{ s.reason }}</span>
+            </div>
+          </div>
+          <table class="csv-preview-table">
+            <thead>
+              <tr>
+                <th class="csv-th">Name</th>
+                <th class="csv-th">Date of birth</th>
+                <th class="csv-th">Email</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let row of csvPreview | slice:0:5" class="csv-row-separator">
+                <td class="csv-td-name">{{ row.name }}</td>
+                <td class="csv-td-secondary">{{ row.dateOfBirth }}</td>
+                <td class="csv-td-secondary">{{ row.contactInfo }}</td>
+              </tr>
+              <tr *ngIf="csvPreview.length > 5" class="csv-more-row">
+                <td colspan="3" class="csv-more-cell">
+                  + {{ csvPreview.length - 5 }} more rows
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div *ngIf="importing" class="import-progress-box">
+          <div class="import-progress-title">Importing patients…</div>
+          <div class="progress-track">
+            <div class="progress-fill"
+                 [style.width]="(importDone / importTotal * 100) + '%'"></div>
+          </div>
+          <div class="import-progress-count">{{ importDone }} of {{ importTotal }} processed</div>
+        </div>
+
+        <div *ngIf="importSummary" class="import-summary-col">
+          <div class="import-success-box">
+            <div class="import-success-title">Import complete</div>
+            <div class="import-success-body">
+              <b>{{ importSummary.success }}</b> patient{{ importSummary.success !== 1 ? 's' : '' }} added.
+            </div>
+          </div>
+          <div *ngIf="importSummary.duplicateRows.length > 0" class="import-duplicate-box">
+            <div class="import-duplicate-title">
+              {{ importSummary.duplicateRows.length }} skipped — email already exists
+            </div>
+            <div class="import-duplicate-list">
+              <span *ngFor="let r of importSummary.duplicateRows; let last = last">
+                {{ r }}{{ !last ? ', ' : '' }}
+              </span>
+            </div>
+          </div>
+          <div *ngIf="importSummary.missingFieldRows > 0" class="import-missing-box">
+            <div class="import-missing-title">
+              {{ importSummary.missingFieldRows }} row{{ importSummary.missingFieldRows !== 1 ? 's' : '' }} skipped — invalid fields
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-primary" *ngIf="!importSummary"
+                [disabled]="csvPreview.length === 0 || importing"
+                [style.opacity]="csvPreview.length === 0 || importing ? '0.4' : '1'"
+                (click)="importCsv()">
+          Import {{ csvPreview.length > 0 ? csvPreview.length + ' patients' : '' }}
+        </button>
+        <button class="btn btn-primary" *ngIf="importSummary" (click)="goToDashboard()">Done</button>
+      </div>
+    </div>
+  </div>
+
+</div>

@@ -1,0 +1,313 @@
+<div class="page">
+
+  <!-- Toasts -->
+  <div class="toast" [ngClass]="'toast-' + toastType" [class.show]="toastVisible">
+    <i class="ti ti-circle-check"></i>
+    <span>{{ toastMessage }}</span>
+  </div>
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <span class="page-title">Visit Management</span>
+    <button class="btn btn-teal" (click)="trialsNav.go('mark-visits')">
+      <i class="ti ti-clipboard-check" style="font-size:13px"></i>
+      Mark today's visits
+    </button>
+  </div>
+
+  <!-- Filters -->
+  <div class="card">
+    <div class="filter-row">
+      <!-- Search box — same style as patients page -->
+      <div class="fg">
+        <div class="page-search-wrap">
+          <svg class="page-search-icon" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
+          </svg>
+          <input type="search" [(ngModel)]="searchQuery"
+                 placeholder="Search by patient name…"
+                 class="page-search-input">
+        </div>
+      </div>
+      <div class="fg">
+        <span class="fl">Protocol</span>
+        <select [(ngModel)]="filterProtocolId" (ngModelChange)="onProtocolFilter()"
+                class="select-protocol">
+          <option value="">All protocols</option>
+          <option *ngFor="let p of protocols" [value]="p.protocolId">{{ p.title }}</option>
+        </select>
+      </div>
+      <div class="fg">
+        <span class="fl">Site</span>
+        <select [(ngModel)]="filterSiteId" class="select-site">
+          <option value="">All sites</option>
+          <option *ngFor="let s of sites" [value]="s.protocolSiteId">{{ s.siteName }}</option>
+        </select>
+      </div>
+      <div class="fg">
+        <span class="fl">Date</span>
+        <input type="date" [(ngModel)]="filterDate" class="select-date">
+      </div>
+      <div class="fg">
+        <span class="fl">Status</span>
+        <select [(ngModel)]="filterStatus" class="select-status">
+          <option value="SCHEDULED">Scheduled</option>
+          <option value="RESCHEDULED">Rescheduled</option>
+          <option value="COMPLETED">Completed</option>
+          <option value="MISSED">Missed</option>
+          <option value="CANCELLED">Cancelled</option>
+        </select>
+      </div>
+      <button class="btn btn-primary btn-sm btn-toolbar"
+              (click)="applyFilters()">
+        <i class="ti ti-filter" style="font-size:12px"></i> Apply
+      </button>
+      <button class="btn btn-sm btn-toolbar"
+              (click)="clearFilters()">
+        <i class="ti ti-x" style="font-size:12px"></i> Clear
+      </button>
+    </div>
+
+    <!-- Bulk actions — hidden in read-only status views -->
+    <div class="bulk-bar" *ngIf="!isReadOnlyView">
+      <span class="bulk-label">Bulk actions:</span>
+
+      <button class="btn btn-primary btn-sm"
+              [disabled]="selectedVisits.length === 0"
+              [style.opacity]="selectedVisits.length === 0 ? '0.38' : '1'"
+              (click)="openBulk('add')">
+        Add visit
+      </button>
+
+      <button class="btn btn-sm btn-amber"
+              [disabled]="selectedVisits.length === 0"
+              [style.opacity]="selectedVisits.length === 0 ? '0.38' : '1'"
+              (click)="openBulk('reschedule')">
+        Reschedule
+      </button>
+
+      <button class="btn btn-sm"
+              [disabled]="selectedVisits.length === 0"
+              [style.opacity]="selectedVisits.length === 0 ? '0.38' : '1'"
+              (click)="openBulk('cancel')">
+        Remove
+      </button>
+
+      <span *ngIf="selectedVisits.length > 0" class="bulk-selection-count">
+        {{ selectedVisits.length }} selected
+      </span>
+    </div>
+
+    <!-- Add Visit Modal -->
+    <div *ngIf="actionType === 'add'" class="modal-overlay">
+      <div class="modal-inner">
+        <div class="modal-head">
+          <div class="modal-title">
+            Add visit for {{ selectedVisits.length }} patient{{ selectedVisits.length !== 1 ? 's' : '' }}
+          </div>
+          <div (click)="closeBulk()" class="modal-close-btn">&times;</div>
+        </div>
+        <div class="modal-body">
+          <div class="mfield">
+            <label>Visit name</label>
+            <input type="text" [(ngModel)]="bulkVisitName"
+                   placeholder="e.g. Visit 1 Body checkup"
+                   class="modal-input">
+          </div>
+          <div class="mfield">
+            <label>Visit date</label>
+            <input type="date" [(ngModel)]="bulkVisitDate" class="modal-input"
+>
+          </div>
+          <!-- Validation error -->
+          <div *ngIf="bulkVisitNameError"
+               style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;margin-top:4px">
+            <svg style="width:16px;height:16px;flex-shrink:0;color:#DC2626" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
+            <span style="font-size:12px;color:#DC2626">{{ bulkVisitNameError }}</span>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-primary" (click)="saveBulkAdd()">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reschedule Modal -->
+    <div *ngIf="actionType === 'reschedule'" class="modal-overlay">
+      <div class="modal-inner">
+        <div class="modal-head">
+          <div class="modal-title">
+            Reschedule {{ selectedVisits.length }} visit{{ selectedVisits.length !== 1 ? 's' : '' }}
+          </div>
+          <div (click)="closeBulk()" class="modal-close-btn">&times;</div>
+        </div>
+        <div class="modal-body">
+          <!-- Info strip -->
+          <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;margin-bottom:14px;font-size:12px;color:#92400E">
+            <svg style="width:15px;height:15px;flex-shrink:0" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+            </svg>
+            The new date will be applied to all
+            <b>{{ selectedVisits.length }} selected patient{{ selectedVisits.length !== 1 ? 's' : '' }}</b>.
+          </div>
+
+          <div class="mfield">
+            <label>New date for all selected visits</label>
+            <input type="date" [(ngModel)]="rescheduleDate"
+                   class="modal-input"
+                   [min]="bulkRescheduleMin"
+                   [max]="bulkRescheduleMax"
+                   (change)="rescheduleDateError = ''">
+          </div>
+
+          <!-- Validation error — shown when Save clicked without a date -->
+          <div *ngIf="rescheduleDateError"
+               style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;margin-top:8px">
+            <svg style="width:16px;height:16px;flex-shrink:0;color:#DC2626" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
+            <span style="font-size:12px;color:#DC2626;font-weight:500">{{ rescheduleDateError }}</span>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-amber" (click)="saveBulkReschedule()">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cancel Modal -->
+    <div *ngIf="actionType === 'cancel'" class="modal-overlay-z600">
+      <div class="modal-inner">
+        <div class="modal-head">
+          <div class="modal-title modal-title-danger">
+            Confirm removal
+          </div>
+          <div (click)="closeBulk()" class="modal-close-btn">&times;</div>
+        </div>
+        <div class="modal-body">
+          <p class="modal-confirm-text">
+            Are you sure you want to remove <b>{{ selectedVisits.length }} visit(s)</b>?
+            They will be marked as Cancelled and cannot be undone.
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-sm btn-danger" (click)="saveBulkCancel()">Yes, remove</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Visit table — 4 equal columns -->
+    <table style="table-layout:fixed">
+      <thead>
+        <tr>
+          <th *ngIf="!isReadOnlyView" style="width:44px">
+            <input type="checkbox" (change)="toggleAll($event)">
+          </th>
+          <th>Patient name</th>
+          <th *ngIf="!isReadOnlyView">Current visit</th>
+          <th *ngIf="isReadOnlyView">Visit</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let v of pagedVisits">
+          <td *ngIf="!isReadOnlyView">
+            <div class="cell">
+              <input type="checkbox"
+                     [checked]="isSelected(v)"
+                     (change)="toggleSelect(v)"
+                     [disabled]="v.enrollmentStatus !== 'ACTIVE'"
+                     [style.opacity]="v.enrollmentStatus !== 'ACTIVE' ? '0.38' : '1'">
+            </div>
+          </td>
+
+          <td><div class="cell cell-name">{{ v.patientName }}</div></td>
+
+          <!-- Current visit — hidden in read-only view -->
+          <td *ngIf="!isReadOnlyView">
+            <div class="visit-name-row">
+              <span class="visit-step-counter">
+                {{ v.visitNumber || 1 }} / {{ v.totalVisits || 1 }}
+              </span>
+              <div>
+                <div class="visit-name-text">{{ v.visitName }}</div>
+                <div class="visit-next-text">
+                  <ng-container *ngIf="getNextVisit(v); else noNext">
+                    Next: {{ getNextVisit(v) }}
+                  </ng-container>
+                  <ng-template #noNext>
+                    <span class="visit-final-label">Final visit</span>
+                  </ng-template>
+                </div>
+              </div>
+            </div>
+          </td>
+
+          <!-- Visit name + date for read-only view only -->
+          <td *ngIf="isReadOnlyView">
+            <div style="font-size:13px;font-weight:500;color:#374151">{{ v.visitName }}</div>
+            <div style="font-size:11px;color:#9CA3AF;margin-top:2px">{{ v.visitDate | date:'dd MMM yyyy' }}</div>
+          </td>
+          <!-- No separate visit name td in normal view — it's inside Current visit column -->
+
+          <td><div class="cell">
+            <span class="badge" [ngClass]="getBadgeClass(v.visitStatus)">
+              {{ v.visitStatus }}
+            </span>
+          </div></td>
+
+          <td><div class="cell">
+            <button class="pl-icon-btn" title="View" (click)="viewDetail(v)">
+              <svg viewBox="0 0 20 20" fill="currentColor">
+                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
+              </svg>
+            </button>
+          </div></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div *ngIf="filteredVisits.length === 0" class="no-results">
+      <i class="ti ti-search-off" style="font-size:26px;display:block;margin-bottom:8px;color:#93C5FD"></i>
+      No visits found.
+    </div>
+
+    <!-- Pagination bar -->
+    <div *ngIf="filteredVisits.length > 0" class="pagination-bar">
+      <span class="pagination-info">
+        Showing {{ pageStart }}–{{ pageEnd }} of {{ filteredVisits.length }} visits
+      </span>
+      <div class="pagination-controls">
+        <button (click)="goToPage(currentPage - 1)"
+                [disabled]="currentPage === 1"
+                class="page-btn"
+                [style.opacity]="currentPage === 1 ? '0.38' : '1'">
+          ‹
+        </button>
+        <ng-container *ngFor="let pg of pageNumbers">
+          <span *ngIf="pg === -1" class="page-ellipsis">…</span>
+          <button *ngIf="pg !== -1"
+                  (click)="goToPage(pg)"
+                  class="page-number-btn"
+                  [style.background]="pg === currentPage ? '#185FA5' : '#fff'"
+                  [style.color]="pg === currentPage ? '#fff' : '#374151'"
+                  [style.border-color]="pg === currentPage ? '#185FA5' : '#E5E7EB'">
+            {{ pg }}
+          </button>
+        </ng-container>
+        <button (click)="goToPage(currentPage + 1)"
+                [disabled]="currentPage === totalPages"
+                class="page-btn"
+                [style.opacity]="currentPage === totalPages ? '0.38' : '1'">
+          ›
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+</div>

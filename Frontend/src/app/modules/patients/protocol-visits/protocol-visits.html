@@ -1,0 +1,180 @@
+<div class="page">
+
+  <!-- Toast -->
+  <div class="toast" [ngClass]="'toast-' + toastType" [class.show]="toastVisible">
+    <span>{{ toastMessage }}</span>
+  </div>
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="btn btn-sm" (click)="goHome()">Back</button>
+      <span class="page-title">Schedule Protocol Visits</span>
+    </div>
+  </div>
+
+  <!-- Protocol selector -->
+  <div class="card">
+    <div class="card-head">
+      <span class="card-title">Select protocol</span>
+    </div>
+    <div class="selector-panel">
+      <div class="fg">
+        <span class="fl">Protocol</span>
+        <select [(ngModel)]="selectedProtocolId" (ngModelChange)="onProtocolChange()"
+                class="select-protocol">
+          <option value="">— select protocol —</option>
+          <option *ngFor="let p of protocols" [value]="p.protocolId">{{ p.title }}</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Protocol info banner -->
+    <div *ngIf="selectedProtocol && selectedProtocol.startDate && selectedProtocol.endDate"
+         class="protocol-banner">
+      <div class="protocol-banner-grid">
+        <div>
+          <div class="banner-item-label">Start date</div>
+          <div class="banner-item-value">{{ selectedProtocol.startDate | date:'dd MMM yyyy' }}</div>
+        </div>
+        <div>
+          <div class="banner-item-label">End date</div>
+          <div class="banner-item-value">{{ selectedProtocol.endDate | date:'dd MMM yyyy' }}</div>
+        </div>
+        <div>
+          <div class="banner-item-label">Enrollment window closes</div>
+          <div class="banner-item-value"
+               [style.color]="isEnrollmentOpen ? '#166534' : '#DC2626'">
+            {{ enrollmentWindowEnd | date:'dd MMM yyyy' }}
+            <span *ngIf="isEnrollmentOpen" class="enrollment-window-note">
+              ({{ daysUntilClose }} day{{ daysUntilClose !== 1 ? 's' : '' }} left)
+            </span>
+            <span *ngIf="!isEnrollmentOpen" class="enrollment-window-note enrollment-window-closed">
+              (closed)
+            </span>
+          </div>
+        </div>
+        <div>
+          <div class="banner-item-label">Active patients</div>
+          <div class="banner-item-value active-patient-count">{{ activePatientCount }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Existing visits (already scheduled) -->
+  <div class="card" *ngIf="existingVisits.length > 0">
+    <div class="card-head">
+      <span class="card-title">Already scheduled visits</span>
+      <span class="visits-count">{{ existingVisits.length }} visit{{ existingVisits.length !== 1 ? 's' : '' }}</span>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Visit name</th>
+          <th>Visit date</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let v of existingVisits">
+          <td><div class="cell cell-visit-name">{{ v.visitName }}</div></td>
+          <td><div class="cell">{{ v.visitDate | date:'dd MMM yyyy' }}</div></td>
+          <td><div class="cell">
+            <span class="badge"
+                  [ngClass]="{
+                    'b-scheduled':   v.visitStatus === 'SCHEDULED',
+                    'b-completed':   v.visitStatus === 'COMPLETED',
+                    'b-rescheduled': v.visitStatus === 'RESCHEDULED',
+                    'b-missed':      v.visitStatus === 'MISSED',
+                    'b-cancelled':   v.visitStatus === 'CANCELLED'
+                  }">
+              {{ v.visitStatus }}
+            </span>
+          </div></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Visit schedule builder — overflow:visible so native date picker is not clipped -->
+  <div class="card" *ngIf="selectedProtocolId && isEnrollmentOpen" style="overflow:visible">
+    <div class="card-head">
+      <span class="card-title">Define new visit schedule</span>
+      <button class="btn btn-sm btn-primary" (click)="addVisitRow()">+ Add visit</button>
+    </div>
+
+    <div class="schedule-body">
+
+      <!-- Column headers -->
+      <div class="schedule-header-row">
+        <span class="schedule-col-label">Visit name</span>
+        <span class="schedule-col-label">Visit date</span>
+        <span></span>
+      </div>
+
+      <!-- Visit rows -->
+      <div *ngFor="let row of visitRows; let i = index" class="visit-row">
+        <div>
+          <input type="text"
+                 [(ngModel)]="row.visitName"
+                 placeholder="e.g. Baseline checkup"
+                 class="visit-input"
+                 [style.border-color]="row.nameError ? '#F09595' : '#D1D5DB'">
+          <div *ngIf="row.nameError" class="field-error">{{ row.nameError }}</div>
+        </div>
+        <div>
+          <input type="date"
+                 [(ngModel)]="row.visitDate"
+                 class="visit-date-input"
+                 [style.border-color]="row.dateError ? '#F09595' : '#D1D5DB'"
+                 [min]="minVisitDate"
+                 [max]="maxVisitDate">
+          <div *ngIf="row.dateError" class="field-error">{{ row.dateError }}</div>
+        </div>
+        <button (click)="removeVisitRow(i)"
+                [disabled]="visitRows.length === 1"
+                class="remove-row-btn"
+                [style.opacity]="visitRows.length === 1 ? '0.38' : '1'">
+          ×
+        </button>
+      </div>
+
+      <!-- Footer -->
+      <div class="schedule-footer">
+        <span class="schedule-footer-info">
+          <b>{{ visitRows.length }}</b> new visit{{ visitRows.length !== 1 ? 's' : '' }}
+          <span *ngIf="activePatientCount > 0">
+            · will create <b>{{ visitRows.length * activePatientCount }}</b> records
+            for {{ activePatientCount }} patient{{ activePatientCount !== 1 ? 's' : '' }}
+          </span>
+        </span>
+        <button class="btn btn-primary" (click)="saveSchedule()"
+                [disabled]="saving"
+                [style.opacity]="saving ? '0.6' : '1'">
+          {{ saving ? 'Saving…' : 'Save & assign to patients' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Enrollment window closed -->
+  <div class="card" *ngIf="selectedProtocolId && !isEnrollmentOpen">
+    <div class="enrollment-closed-body">
+      <div class="enrollment-closed-title">Enrollment window closed</div>
+      <div class="enrollment-closed-sub">
+        Visit scheduling is only allowed during the enrollment window.
+        This protocol's window closed on <b>{{ enrollmentWindowEnd | date:'dd MMM yyyy' }}</b>.
+      </div>
+    </div>
+  </div>
+
+  <!-- Initial state -->
+  <div class="card" *ngIf="!selectedProtocolId">
+    <div class="empty-state-body">
+      <div class="empty-state-title">Select a protocol to get started</div>
+      <div class="empty-state-sub">Choose a protocol above to define its visit schedule.</div>
+    </div>
+  </div>
+
+</div>

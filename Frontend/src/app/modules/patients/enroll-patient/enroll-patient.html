@@ -1,0 +1,168 @@
+<div class="page">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="btn btn-sm" (click)="goHome()">
+        <i class="ti ti-arrow-left" style="font-size:13px"></i> Back
+      </button>
+      <span class="page-title">Enroll patient in protocol</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <span class="card-title">Enroll patient in new protocol</span>
+    </div>
+
+    <div class="filter-toolbar">
+      <div class="fg">
+        <span class="fl">Protocol</span>
+        <select [(ngModel)]="selectedProtocolId" (ngModelChange)="onProtocolChange()"
+                class="select-protocol">
+          <option value="">— select protocol —</option>
+          <option *ngFor="let p of openProtocols" [value]="p.protocolId">
+            {{ p.title }}
+          </option>
+        </select>
+      </div>
+      <div class="fg">
+        <span class="fl">Site</span>
+        <select [(ngModel)]="selectedSiteId"
+                [disabled]="!selectedProtocolId || sites.length === 0 || enrollmentWindowClosed"
+                class="select-site">
+          <option value="">— select site —</option>
+          <option *ngFor="let s of sites" [value]="s.protocolSiteId">{{ s.siteName }}</option>
+        </select>
+      </div>
+      <div class="fg">
+        <span class="fl">Patient status</span>
+        <select [(ngModel)]="statusFilter" class="select-status">
+          <option value="">All eligible</option>
+          <option value="Not enrolled">Not enrolled</option>
+          <option value="Completed">Completed</option>
+          <option value="Withdrawn">Withdrawn</option>
+        </select>
+      </div>
+      <button class="btn btn-primary btn-sm btn-toolbar"
+              [disabled]="enrollmentWindowClosed"
+              (click)="filterEligiblePatients()">
+        <i class="ti ti-filter" style="font-size:12px"></i> Apply
+      </button>
+      <button class="btn btn-sm btn-toolbar"
+              (click)="clearFilters()">
+        <i class="ti ti-x" style="font-size:12px"></i> Clear
+      </button>
+    </div>
+
+    <!-- Enrollment window closed warning -->
+    <div *ngIf="enrollmentWindowClosed" class="alert-closed">
+      <i class="ti ti-lock" style="font-size:14px"></i>
+      <div>
+        <b>Enrollment window closed.</b>
+        The enrollment window for this protocol closed on
+        <b>{{ enrollmentWindowEnd | date:'dd MMM yyyy' }}</b>.
+        New enrollments are not allowed.
+      </div>
+    </div>
+
+    <!-- Enrollment window open info -->
+    <div *ngIf="selectedProtocolId && !enrollmentWindowClosed && enrollmentWindowEnd"
+         class="alert-open">
+      <i class="ti ti-calendar-check" style="font-size:14px"></i>
+      Enrollment window open — closes on
+      <b>{{ enrollmentWindowEnd | date:'dd MMM yyyy' }}</b>
+      ({{ daysUntilClose }} day{{ daysUntilClose !== 1 ? 's' : '' }} left)
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th class="col-checkbox">
+            <input type="checkbox" (change)="toggleAll($event)"
+                   [disabled]="enrollmentWindowClosed">
+          </th>
+          <th>Patient name</th>
+          <th>Status</th>
+          <th>Previous protocol</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of pagedPatients">
+          <td><div class="cell">
+            <input type="checkbox" [checked]="isSelected(p)"
+                   (change)="toggleSelect(p)"
+                   [disabled]="enrollmentWindowClosed">
+          </div></td>
+          <td><div class="cell cell-patient-name">{{ p.name }}</div></td>
+          <td><div class="cell">
+            <span class="badge" [ngClass]="getBadgeClass(p.enrollmentStatus)">
+              {{ p.enrollmentStatus }}
+            </span>
+          </div></td>
+          <td><div class="cell cell-secondary">{{ p.protocolTitle || '—' }}</div></td>
+        </tr>
+        <tr *ngIf="eligiblePatients.length === 0">
+          <td colspan="4">
+            <div class="empty-state">
+              <i class="ti ti-users empty-state-icon"></i>
+              {{ selectedProtocolId ? 'No eligible patients for this protocol' : 'Select a protocol to see eligible patients' }}
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Pagination bar -->
+    <div *ngIf="eligiblePatients.length > 0" class="pagination-bar">
+      <span class="pagination-info">
+        Showing {{ pageStart }}–{{ pageEnd }} of {{ eligiblePatients.length }} patients
+      </span>
+      <div class="pagination-controls">
+        <button (click)="goToPage(currentPage - 1)"
+                [disabled]="currentPage === 1"
+                class="page-btn"
+                [style.opacity]="currentPage === 1 ? '0.38' : '1'">
+          ‹
+        </button>
+        <ng-container *ngFor="let pg of pageNumbers">
+          <span *ngIf="pg === -1" class="page-ellipsis">…</span>
+          <button *ngIf="pg !== -1"
+                  (click)="goToPage(pg)"
+                  class="page-number-btn"
+                  [style.background]="pg === currentPage ? '#185FA5' : '#fff'"
+                  [style.color]="pg === currentPage ? '#fff' : '#374151'"
+                  [style.border-color]="pg === currentPage ? '#185FA5' : '#E5E7EB'">
+            {{ pg }}
+          </button>
+        </ng-container>
+        <button (click)="goToPage(currentPage + 1)"
+                [disabled]="currentPage === totalPages"
+                class="page-btn"
+                [style.opacity]="currentPage === totalPages ? '0.38' : '1'">
+          ›
+        </button>
+      </div>
+    </div>
+
+    <!-- Save footer -->
+    <div class="save-footer">
+      <span class="save-footer-info">
+        <b>{{ selected.length }}</b> patient{{ selected.length !== 1 ? 's' : '' }} selected
+      </span>
+      <div class="save-footer-actions">
+        <button class="btn btn-primary btn-sm"
+                [disabled]="selected.length === 0 || !selectedProtocolId || !selectedSiteId || enrollmentWindowClosed"
+                [style.opacity]="enrollmentWindowClosed ? '0.38' : '1'"
+                (click)="saveEnroll()">
+          <i class="ti ti-device-floppy" style="font-size:12px"></i> Save enrollment
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast toast-fixed" [ngClass]="'toast-' + toastType" [class.show]="toastVisible">
+    <i class="ti ti-circle-check"></i>
+    <span>{{ toastMessage }}</span>
+  </div>
+
+</div>

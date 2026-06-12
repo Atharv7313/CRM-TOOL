@@ -1,0 +1,64 @@
+<div class="cs-wrap">
+
+  <div class="back-header">
+    <button class="back-btn" (click)="cancel()">
+      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clip-rule="evenodd"/></svg>
+      Back to Sites
+    </button>
+    <nav class="breadcrumb-nav">
+      <span>Sites</span>
+      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>
+      <span class="crumb-active">Register New Site</span>
+    </nav>
+  </div>
+
+  <div class="form-card">
+
+    <div class="card-head">
+      <div class="card-head-inner">
+        <div class="card-head-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        </div>
+        <div>
+          <h2 class="card-title">Register Research Site</h2>
+          <p class="card-sub">Add a new clinical research site that can be assigned to protocols.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-alert success" *ngIf="success">
+      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+      {{ success }} Redirecting...
+    </div>
+    <div class="form-alert error" *ngIf="error">
+      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+      {{ error }}
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="cs-form">
+
+      <div class="field">
+        <label>Site Name <span class="req">*</span></label>
+        <input type="text" formControlName="name" placeholder="e.g. Apollo Research Center"/>
+        <span class="ferr" *ngIf="f['name'].touched && f['name'].invalid">Site name is required.</span>
+      </div>
+
+      <div class="field">
+        <label>Location <span class="req">*</span></label>
+        <input type="text" formControlName="location" placeholder="e.g. Chennai, India"/>
+        <span class="ferr" *ngIf="f['location'].touched && f['location'].invalid">Location is required.</span>
+        <span class="field-hint" *ngIf="!f['location'].invalid">City, state, or full address of the research site.</span>
+      </div>
+
+
+<div class="form-actions">
+        <button type="submit" class="btn-submit" [disabled]="loading">
+          <span class="spinner-sm" *ngIf="loading"></span>
+          <svg *ngIf="!loading" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/></svg>
+          <span>{{ loading ? 'Registering...' : 'Register Site' }}</span>
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>

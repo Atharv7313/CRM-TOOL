@@ -1,0 +1,6 @@
+@ProtocolService_HostAddress = http://localhost:5054
+
+GET {{ProtocolService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

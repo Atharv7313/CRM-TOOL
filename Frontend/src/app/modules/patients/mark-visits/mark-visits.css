@@ -1,0 +1,283 @@
+/* Topbar */
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.topbar-date {
+  font-size: 12px;
+  color: #6B7280;
+}
+
+/* Filter panel */
+.filter-panel {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 14px 16px;
+}
+
+.select-protocol { width: 180px; height: 36px; }
+.select-site     { width: 155px; height: 36px; }
+.select-date     { width: 155px; height: 36px; }
+
+.btn-toolbar { align-self: flex-end; height: 36px; }
+
+/* Scheduled visits header extras */
+.visit-subtitle {
+  font-size: 11px;
+  color: #6B7280;
+  margin-top: 3px;
+}
+
+.attendance-summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.attendance-info {
+  font-size: 12px;
+  color: #6B7280;
+}
+
+.attended-count  { color: #16A34A; font-weight: 500; }
+.missed-count    { color: #DC2626; font-weight: 500; }
+
+/* Attendance checkbox cell */
+.attendance-check-cell {
+  padding: 10px 12px;
+  text-align: center;
+}
+
+.attendance-checkbox {
+  width: 17px;
+  height: 17px;
+  cursor: pointer;
+  accent-color: #16A34A;
+}
+
+/* Cell styles */
+.cell-name { font-weight: 500; }
+
+/* Visit name inner */
+.visit-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.visit-name-text {
+  font-size: 12px;
+  font-weight: 500;
+  color: #185FA5;
+}
+
+.visit-protocol-text {
+  font-size: 10px;
+  color: #94a3b8;
+  margin-top: 1px;
+}
+
+/* Badge font override */
+.badge-xs { font-size: 10px; }
+
+/* Pagination bar */
+.pagination-bar {
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid #E5E7EB;
+  background: #F9FAFB;
+}
+
+.pagination-info {
+  font-size: 12px;
+  color: #6B7280;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.page-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid #E5E7EB;
+  background: #fff;
+  cursor: pointer;
+  font-size: 13px;
+  color: #374151;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.page-number-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid #E5E7EB;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.page-ellipsis {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: #9CA3AF;
+}
+
+/* Table footer */
+.table-footer {
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #F9FAFB;
+  border-top: 1px solid #E5E7EB;
+}
+
+.footer-info {
+  font-size: 12px;
+  color: #6B7280;
+}
+
+.footer-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* Empty state cards */
+.empty-state-body {
+  padding: 48px;
+  text-align: center;
+  color: #9CA3AF;
+}
+
+.empty-state-icon {
+  font-size: 32px;
+  display: block;
+  margin-bottom: 10px;
+  color: #93C5FD;
+}
+
+.empty-state-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #6B7280;
+  margin-bottom: 4px;
+}
+
+.empty-state-sub {
+  font-size: 12px;
+}
+
+/* Confirm modal overlay */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-inner {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.22);
+  width: 100%;
+  max-width: 460px;
+  overflow: hidden;
+}
+
+.modal-close-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  border: 1px solid #D1D5DB;
+  cursor: pointer;
+  font-size: 18px;
+  color: #6B7280;
+  line-height: 1;
+}
+
+.modal-body-col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Attended / missed confirmation blocks */
+.confirm-attended-block {
+  padding: 12px 14px;
+  background: #F0FDF4;
+  border: 1px solid #86EFAC;
+  border-radius: 8px;
+}
+
+.confirm-attended-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: #166534;
+  margin-bottom: 6px;
+}
+
+.confirm-attended-list {
+  font-size: 11px;
+  color: #166534;
+  line-height: 1.8;
+}
+
+.confirm-none-text {
+  font-size: 11px;
+  color: #6B7280;
+}
+
+.confirm-missed-block {
+  padding: 12px 14px;
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-radius: 8px;
+}
+
+.confirm-missed-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: #DC2626;
+  margin-bottom: 6px;
+}
+
+.confirm-missed-list {
+  font-size: 11px;
+  color: #DC2626;
+  line-height: 1.8;
+}
+
+.confirm-all-attended {
+  padding: 10px 14px;
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #6B7280;
+}

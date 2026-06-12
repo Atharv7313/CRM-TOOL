@@ -1,0 +1,263 @@
+<div class="content">
+  <!-- Back button + add lab result -->
+  <div class="lab-header">
+    <button class="btn-back" (click)="back.emit()">
+      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+      Back to Samples
+    </button>
+    <div class="lab-header-right">
+      <button class="btn-enroll" *ngIf="canManage" (click)="openCreatePanel()">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>
+        Add Lab Result
+      </button>
+    </div>
+  </div>
+
+  <!-- Selected sample summary card -->
+  <div class="sample-summary-card">
+    <div class="sample-summary-left">
+      <div class="sample-icon-lg">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4.5 6H20M4.5 6L4 20h16l-.5-14M4.5 6l2.5-3h10l2.5 3"/></svg>
+      </div>
+      <div>
+        <h4>{{ sample.sampleType }}</h4>
+        <p class="muted">Collected by {{ sample.collectedByUserName }} <span *ngIf="sample.collectedByUserRole">[{{ sample.collectedByUserRole }}]</span> &bull; {{ sample.collectedDate | date:'dd MMM yyyy' }}</p>
+      </div>
+    </div>
+    <span class="sample-status-badge"
+      [style.background]="statusColor(sample.status)"
+      [style.color]="statusTextColor(sample.status)">
+      {{ sample.status }}
+    </span>
+  </div>
+
+  <!-- Lab results loading -->
+  <div class="loading-row" *ngIf="labResultsLoading">
+    <div class="spinner-lg"></div>
+    <span>Loading lab results...</span>
+  </div>
+
+  <!-- Lab results error -->
+  <div class="lr-error-row" *ngIf="!labResultsLoading && labResultsError">
+    <svg viewBox="0 0 20 20" fill="currentColor" width="18" height="18"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+    <span>{{ labResultsError }}</span>
+    <button class="btn-retry" (click)="loadLabResults()">Retry</button>
+  </div>
+
+  <!-- Lab results table -->
+  <div class="section-card" *ngIf="!labResultsLoading && !labResultsError">
+    <div class="section-header">
+      <h4>Lab Results</h4>
+      <span class="section-badge">{{ labResults.length }} result(s)</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Test Type</th>
+            <th>Result Value</th>
+            <th>Result Date</th>
+            <th>Recorded By</th>
+            <th *ngIf="canManage || isAdmin">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let r of labResults">
+            <td><span class="user-name">{{ r.testType }}</span></td>
+            <td>
+              <!-- Result Value -->
+              <span>{{ r.resultValue }}</span>
+              <!-- Result Status badge — only if status is set -->
+              <span *ngIf="r.resultStatus"
+                class="result-status-badge"
+                [class.result-normal]="r.resultStatus === 'Normal' || r.resultStatus === 'Negative'"
+                [class.result-abnormal]="r.resultStatus === 'Abnormal - High' || r.resultStatus === 'Abnormal - Low' || r.resultStatus === 'Positive' || r.resultStatus === 'Borderline'"
+                [class.result-critical]="r.resultStatus === 'Critical High' || r.resultStatus === 'Critical Low'"
+                [class.result-inconclusive]="r.resultStatus === 'Inconclusive'">
+                {{ r.resultStatus }}
+              </span>
+            </td>
+            <td class="muted">{{ r.resultDate | date:'dd MMM yyyy' }}</td>
+            <td>
+              <div class="td-user">
+                <div class="td-avatar">{{ avatarFor(r.recordedByUserName) }}</div>
+                <span class="muted">{{ r.recordedByUserName }}</span>
+              </div>
+            </td>
+            <td *ngIf="canManage || isAdmin">
+              <div class="action-btns">
+                <button class="btn-action btn-edit-sm" *ngIf="canManage" (click)="openEditPanel(r)" title="Edit Result">
+                  <svg viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/></svg>
+                  Edit
+                </button>
+                <button class="btn-action btn-delete" *ngIf="isAdmin" (click)="deleteResult(r.resultId, r.testType)" title="Delete Result">
+                  <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                  Delete
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="labResults.length === 0">
+            <td colspan="5" class="empty-row">No lab results found for this sample.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- My Note (RESEARCH_SCIENTIST only) -->
+  <div class="note-card" *ngIf="role === 'RESEARCH_SCIENTIST' && (sample.status === 'TESTED' || sample.status === 'ANALYZED')">
+    <div class="note-card-header">
+      <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z"/><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd"/></svg>
+      <span>My Note</span>
+      <span class="note-saved-chip" *ngIf="sample.notes">Saved</span>
+    </div>
+    <!-- Viewing saved note -->
+    <div *ngIf="sample.notes && noteEditId !== sample.sampleId" class="note-view">
+      <p class="note-text">{{ sample.notes }}</p>
+      <div class="note-view-actions">
+        <button class="btn-action btn-edit-sm" (click)="openNoteEdit(sample.sampleId)">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/></svg>
+          Edit
+        </button>
+        <button class="btn-action btn-delete" (click)="clearNote(sample.sampleId)">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+          Remove
+        </button>
+      </div>
+    </div>
+    <!-- Edit / add note -->
+    <div *ngIf="!sample.notes || noteEditId === sample.sampleId" class="note-edit">
+      <textarea [(ngModel)]="noteDraft"
+                placeholder="Write your observations, findings, or flag this sample for further action..."
+                rows="3"></textarea>
+      <div class="note-edit-actions">
+        <button class="btn-save-note" (click)="saveNote(sample.sampleId)" [disabled]="!noteDraft.trim()">Save Note</button>
+        <button class="btn-action" *ngIf="noteEditId === sample.sampleId" (click)="noteEditId=''">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Create Lab Result Modal -->
+<div class="modal-backdrop" [class.open]="showCreatePanel" (click)="closeCreatePanel()">
+  <div class="modal" style="max-width:560px" (click)="$event.stopPropagation()">
+    <div class="modal-head">
+      <div class="modal-title">
+        <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>
+        Add Lab Result — {{ sample.sampleType }}
+      </div>
+      <div (click)="closeCreatePanel()" class="modal-close-btn">&times;</div>
+    </div>
+    <div class="modal-body">
+  <form [formGroup]="createForm" (ngSubmit)="submitCreate()" id="createLabResultForm">
+    <div class="panel-alert success" *ngIf="createSuccess">
+      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+      {{ createSuccess }}
+    </div>
+    <div class="panel-alert error" *ngIf="createError">
+      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+      {{ createError }}
+    </div>
+    <div class="field">
+      <label>Test Type <span class="req">*</span></label>
+      <input type="text" formControlName="testType" placeholder="e.g. CBC, HbA1c, PCR, ELISA..."/>
+      <span class="ferr" *ngIf="createForm.get('testType')?.touched && createForm.get('testType')?.invalid">Test type is required.</span>
+    </div>
+    <div class="field">
+      <label>Result Value <span class="req">*</span></label>
+      <input type="text" formControlName="resultValue" placeholder="e.g. 12.5 g/dL, 98%, Negative"/>
+      <span class="ferr" *ngIf="createForm.get('resultValue')?.touched && createForm.get('resultValue')?.invalid">Result value is required.</span>
+    </div>
+    <div class="field">
+      <label>Result Status</label>
+      <select formControlName="resultStatus">
+        <option value="">-- Select Status (Optional) --</option>
+        <option value="Normal">Normal</option>
+        <option value="Abnormal - High">Abnormal - High</option>
+        <option value="Abnormal - Low">Abnormal - Low</option>
+        <option value="Critical High">Critical High</option>
+        <option value="Critical Low">Critical Low</option>
+        <option value="Positive">Positive</option>
+        <option value="Negative">Negative</option>
+        <option value="Borderline">Borderline</option>
+        <option value="Inconclusive">Inconclusive</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Result Date <span class="req">*</span></label>
+      <input type="date" formControlName="resultDate"/>
+      <span class="ferr" *ngIf="createForm.get('resultDate')?.touched && createForm.get('resultDate')?.errors?.['required']">Result date is required.</span>
+      <span class="ferr" *ngIf="createForm.get('resultDate')?.touched && createForm.get('resultDate')?.errors?.['futureDate']">Result date cannot be a future date.</span>
+      <span class="ferr" *ngIf="createForm.get('resultDate')?.touched && createForm.get('resultDate')?.errors?.['beforeCollection']">Result date cannot be before the sample collection date.</span>
+    </div>
+    </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn-cancel" (click)="closeCreatePanel()">Cancel</button>
+      <button type="submit" form="createLabResultForm" class="btn-submit" [disabled]="createForm.invalid || createLoading">
+        <span class="spinner-sm" *ngIf="createLoading"></span>
+        <span>{{ createLoading ? 'Recording...' : 'Record Result' }}</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Lab Result Modal -->
+<div class="modal-backdrop" [class.open]="showEditPanel" (click)="closeEditPanel()">
+  <div class="modal" style="max-width:560px" (click)="$event.stopPropagation()">
+    <div class="modal-head">
+      <div class="modal-title">
+        <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/></svg>
+        Edit Lab Result — {{ editingResult?.testType }}
+      </div>
+      <div (click)="closeEditPanel()" class="modal-close-btn">&times;</div>
+    </div>
+    <div class="modal-body">
+  <form [formGroup]="editForm" (ngSubmit)="submitEdit()" id="editLabResultForm">
+    <div class="panel-alert success" *ngIf="editSuccess">
+      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+      {{ editSuccess }}
+    </div>
+    <div class="panel-alert error" *ngIf="editError">
+      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+      {{ editError }}
+    </div>
+    <div class="field">
+      <label>Test Type</label>
+      <input type="text" formControlName="testType" placeholder="e.g. CBC, HbA1c, PCR, ELISA..."/>
+    </div>
+    <div class="field">
+      <label>Result Value</label>
+      <input type="text" formControlName="resultValue" placeholder="e.g. 12.5 g/dL, 98%, Negative"/>
+    </div>
+    <div class="field">
+      <label>Result Status</label>
+      <select formControlName="resultStatus">
+        <option value="">-- Select Status (Optional) --</option>
+        <option value="Normal">Normal</option>
+        <option value="Abnormal - High">Abnormal - High</option>
+        <option value="Abnormal - Low">Abnormal - Low</option>
+        <option value="Critical High">Critical High</option>
+        <option value="Critical Low">Critical Low</option>
+        <option value="Positive">Positive</option>
+        <option value="Negative">Negative</option>
+        <option value="Borderline">Borderline</option>
+        <option value="Inconclusive">Inconclusive</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Result Date</label>
+      <input type="date" formControlName="resultDate"/>
+    </div>
+    </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn-cancel" (click)="closeEditPanel()">Cancel</button>
+      <button type="submit" form="editLabResultForm" class="btn-submit" [disabled]="editLoading">
+        <span class="spinner-sm" *ngIf="editLoading"></span>
+        <span>{{ editLoading ? 'Saving...' : 'Save Changes' }}</span>
+      </button>
+    </div>
+  </div>
+</div>

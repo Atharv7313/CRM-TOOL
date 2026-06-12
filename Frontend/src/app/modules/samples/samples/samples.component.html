@@ -1,0 +1,283 @@
+<div class="content" *ngIf="!showLabResultsView">
+  <div class="users-header">
+    <div>
+      <h3 class="section-title">Lab &amp; Samples</h3>
+      <p class="section-sub">Manage biological sample collection and tracking.</p>
+    </div>
+    <button class="btn-enroll" *ngIf="canCreate" (click)="openCreatePanel()">
+      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>
+      New Sample
+    </button>
+  </div>
+
+  <div class="loading-row" *ngIf="samplesLoading">
+    <div class="spinner-lg"></div>
+    <span>Loading samples...</span>
+  </div>
+
+  <div class="section-card" *ngIf="!samplesLoading">
+    <div class="section-header">
+      <h4>All Samples</h4>
+      <span class="section-badge">{{ samples.length }} record(s)</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Sample Type</th>
+            <th *ngIf="role !== 'LAB_TECHNICIAN'">Collected By</th>
+            <th>Patient Detail</th>
+            <th>Collected Date</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let s of samples">
+            <td>
+              <div class="td-user">
+                <div class="sample-type-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4.5 6H20M4.5 6L4 20h16l-.5-14M4.5 6l2.5-3h10l2.5 3"/></svg>
+                </div>
+                <span class="user-name">{{ s.sampleType }}</span>
+              </div>
+            </td>
+            <td *ngIf="role !== 'LAB_TECHNICIAN'">
+              <div class="td-user">
+                <div class="td-avatar">{{ avatarFor(s.collectedByUserName) }}</div>
+                <div>
+                  <span class="user-name">{{ s.collectedByUserName }}</span>
+                  <span class="collector-role" *ngIf="s.collectedByUserRole">[{{ s.collectedByUserRole }}]</span>
+                </div>
+              </div>
+            </td>
+            <td>
+              <ng-container *ngIf="s.patientName; else noPatient">
+                <div style="font-size:13px;font-weight:600;color:#111827;">{{ s.patientName }}</div>
+                <div *ngIf="s.protocolTitle" style="font-size:11px;color:#6B7280;margin-top:2px;">{{ s.protocolTitle }}</div>
+                <div *ngIf="s.patientEmail" style="font-size:11px;color:#9CA3AF;margin-top:1px;">{{ s.patientEmail }}</div>
+              </ng-container>
+              <ng-template #noPatient><span class="muted">—</span></ng-template>
+            </td>
+            <td class="muted">{{ s.collectedDate | date:'dd MMM yyyy, HH:mm' }}</td>
+            <td>
+              <span class="sample-status-badge"
+                [style.background]="statusColor(s.status)"
+                [style.color]="statusTextColor(s.status)">
+                {{ s.status }}
+              </span>
+            </td>
+            <td>
+              <div class="action-btns">
+                <button class="btn-action btn-view" (click)="viewLabResults(s)" title="View Lab Results">
+                  <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10z" clip-rule="evenodd"/></svg>
+                  Results
+                </button>
+                <button class="btn-action btn-edit-sm" *ngIf="canEdit" (click)="openEditPanel(s)" title="Edit Sample">
+                  <svg viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/></svg>
+                  Edit
+                </button>
+                <button class="btn-action btn-status" *ngIf="canUpdateStatus" (click)="openStatusPanel(s)" title="Update Status">
+                  <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                  Status
+                </button>
+                <button class="btn-action btn-delete" *ngIf="isAdmin" (click)="deleteSample(s.sampleId, s.sampleType)" title="Delete Sample">
+                  <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                  Delete
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="samples.length === 0 && !samplesError">
+            <td [attr.colspan]="role === 'LAB_TECHNICIAN' ? 5 : 6" class="empty-row">No samples found.</td>
+          </tr>
+          <tr *ngIf="samplesError">
+            <td [attr.colspan]="role === 'LAB_TECHNICIAN' ? 5 : 6" class="empty-row" style="color:#c0392b; font-weight:600;">
+              ⚠️ {{ samplesError }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Lab Results sub-view -->
+<app-labresult
+  *ngIf="showLabResultsView && selectedSample"
+  [sample]="selectedSample!"
+  [role]="role"
+  [currentUserId]="currentUserId"
+  (back)="backToSamples()">
+</app-labresult>
+
+<!-- Create Sample Modal -->
+<div class="modal-backdrop" [class.open]="showCreatePanel" (click)="closeCreatePanel()">
+  <div class="modal" style="max-width:560px" (click)="$event.stopPropagation()">
+    <div class="modal-head">
+      <div class="modal-title">
+        <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"/></svg>
+        New Sample
+      </div>
+      <div (click)="closeCreatePanel()" class="modal-close-btn">&times;</div>
+    </div>
+    <div class="modal-body">
+  <form [formGroup]="createForm" (ngSubmit)="submitCreate()" id="createSampleForm">
+    <div class="panel-alert success" *ngIf="createSuccess">
+      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+      {{ createSuccess }}
+    </div>
+    <div class="panel-alert error" *ngIf="createError">
+      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+      {{ createError }}
+    </div>
+    <div class="field">
+      <label>Sample Type <span class="req">*</span></label>
+      <input type="text" formControlName="sampleType" placeholder="e.g. Blood, Plasma, Urine, Tissue..."/>
+      <span class="ferr" *ngIf="createForm.get('sampleType')?.touched && createForm.get('sampleType')?.invalid">Sample type is required.</span>
+    </div>
+    <div class="field">
+      <label>Patient Enrollment <span class="req">*</span></label>
+
+      <!-- Selected chip -->
+      <div *ngIf="selectedEnrollmentLabel" style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;margin-bottom:6px;">
+        <svg viewBox="0 0 20 20" fill="currentColor" style="width:16px;height:16px;color:#15803d;flex-shrink:0"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+        <span style="flex:1;font-size:13px;font-weight:500;color:#15803d;">{{ selectedEnrollmentLabel }}</span>
+        <button type="button" (click)="clearEnrollment()" style="background:none;border:none;cursor:pointer;color:#6b7280;font-size:16px;line-height:1;padding:0;">&times;</button>
+      </div>
+
+      <!-- Search input (hidden once selected) -->
+      <div *ngIf="!selectedEnrollmentLabel" style="position:relative;width:100%;">
+        <input
+          type="text"
+          [(ngModel)]="enrollmentSearch"
+          [ngModelOptions]="{standalone:true}"
+          placeholder="Search by name, email or protocol..."
+          (focus)="enrollmentDropdownOpen = true"
+          (input)="enrollmentDropdownOpen = true"
+          (blur)="enrollmentDropdownOpen = false"
+          autocomplete="off"
+          style="width:100%;box-sizing:border-box;padding-right:36px;"
+        />
+        <svg *ngIf="enrollmentsLoading" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          style="position:absolute;right:10px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:#9ca3af;">
+          <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+        </svg>
+        <svg *ngIf="!enrollmentsLoading" viewBox="0 0 20 20" fill="currentColor"
+          style="position:absolute;right:10px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:#9ca3af;pointer-events:none;">
+          <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
+        </svg>
+
+        <!-- Dropdown list -->
+        <div *ngIf="enrollmentDropdownOpen"
+          style="position:absolute;z-index:999;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1.5px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.12);max-height:220px;overflow-y:auto;">
+          <div *ngIf="enrollmentsLoading" style="padding:14px 16px;text-align:center;color:#9ca3af;font-size:13px;">Loading enrollments...</div>
+          <div *ngIf="!enrollmentsLoading && filteredEnrollments.length === 0"
+            style="padding:14px 16px;text-align:center;color:#9ca3af;font-size:13px;">No active enrollments found.</div>
+          <div *ngFor="let e of filteredEnrollments; let last = last"
+            (mousedown)="selectEnrollment(e)"
+            style="padding:10px 14px;cursor:pointer;transition:background .1s;"
+            [style.border-bottom]="last ? 'none' : '1px solid #f5f3ef'"
+            onmouseover="this.style.background='#f5f3ef'" onmouseout="this.style.background=''">
+            <div style="font-size:13px;font-weight:600;color:#1a1a1a;">{{ e.patientName }}</div>
+            <div style="font-size:12px;color:#6b7280;margin-top:2px;">{{ e.protocolTitle }} &middot; {{ e.siteName }}</div>
+            <div *ngIf="e.patientEmail" style="font-size:11px;color:#9ca3af;margin-top:1px;">{{ e.patientEmail }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hidden form control -->
+      <input type="hidden" formControlName="enrollmentId"/>
+      <span class="ferr" *ngIf="createForm.get('enrollmentId')?.touched && createForm.get('enrollmentId')?.invalid">Please select a patient enrollment.</span>
+    </div>
+    <div class="field">
+      <label>Collection Date &amp; Time <span class="req">*</span></label>
+      <input type="datetime-local" formControlName="collectedDate"/>
+      <span class="ferr" *ngIf="createForm.get('collectedDate')?.touched && createForm.get('collectedDate')?.errors?.['required']">Collection date is required.</span>
+      <span class="ferr" *ngIf="createForm.get('collectedDate')?.touched && createForm.get('collectedDate')?.errors?.['futureDate']">Collection date cannot be a future date.</span>
+    </div>
+    </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn-cancel" (click)="closeCreatePanel()">Cancel</button>
+      <button type="submit" form="createSampleForm" class="btn-submit" [disabled]="createForm.invalid || createLoading">
+        <span class="spinner-sm" *ngIf="createLoading"></span>
+        <span>{{ createLoading ? 'Saving...' : 'Create Sample' }}</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Sample Modal -->
+<div class="modal-backdrop" [class.open]="showEditPanel" (click)="closeEditPanel()">
+  <div class="modal" style="max-width:480px" (click)="$event.stopPropagation()">
+    <div class="modal-head">
+      <div class="modal-title">
+        <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/></svg>
+        Edit Sample
+      </div>
+      <div (click)="closeEditPanel()" class="modal-close-btn">&times;</div>
+    </div>
+    <div class="modal-body">
+  <form [formGroup]="editForm" (ngSubmit)="submitEdit()" id="editSampleForm">
+    <div class="panel-alert success" *ngIf="editSuccess">
+      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+      {{ editSuccess }}
+    </div>
+    <div class="panel-alert error" *ngIf="editError">
+      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+      {{ editError }}
+    </div>
+    <div class="field">
+      <label>Sample Type</label>
+      <input type="text" formControlName="sampleType" placeholder="e.g. Blood, Plasma, Urine..."/>
+    </div>
+    </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn-cancel" (click)="closeEditPanel()">Cancel</button>
+      <button type="submit" form="editSampleForm" class="btn-submit" [disabled]="editLoading">
+        <span class="spinner-sm" *ngIf="editLoading"></span>
+        <span>{{ editLoading ? 'Saving...' : 'Save Changes' }}</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Update Status Modal -->
+<div class="modal-backdrop" [class.open]="showStatusPanel" (click)="closeStatusPanel()">
+  <div class="modal" style="max-width:420px" (click)="$event.stopPropagation()">
+    <div class="modal-head">
+      <div class="modal-title">
+        <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+        Update Status — {{ statusSample?.sampleType }}
+      </div>
+      <div (click)="closeStatusPanel()" class="modal-close-btn">&times;</div>
+    </div>
+    <div class="modal-body">
+  <form [formGroup]="statusForm" (ngSubmit)="submitStatus()" id="statusSampleForm">
+    <div class="panel-alert success" *ngIf="statusSuccess">
+      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+      {{ statusSuccess }}
+    </div>
+    <div class="panel-alert error" *ngIf="statusError">
+      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+      {{ statusError }}
+    </div>
+    <div class="field">
+      <label>New Status <span class="req">*</span></label>
+      <select formControlName="status">
+        <option *ngFor="let st of sampleStatuses" [value]="st">{{ st }}</option>
+      </select>
+    </div>
+    </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn-cancel" (click)="closeStatusPanel()">Cancel</button>
+      <button type="submit" form="statusSampleForm" class="btn-submit" [disabled]="statusForm.invalid || statusLoading">
+        <span class="spinner-sm" *ngIf="statusLoading"></span>
+        <span>{{ statusLoading ? 'Updating...' : 'Update Status' }}</span>
+      </button>
+    </div>
+  </div>
+</div>

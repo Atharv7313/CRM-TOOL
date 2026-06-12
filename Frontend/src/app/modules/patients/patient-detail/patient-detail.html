@@ -1,0 +1,139 @@
+<div class="page">
+
+  <div class="toast" [ngClass]="'toast-' + toastType" [class.show]="toastVisible">
+    <span>{{ toastMessage }}</span>
+  </div>
+
+  <!-- Top bar — plain, no white bg box -->
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0 8px">
+    <button class="btn btn-sm" (click)="goBack()">← Back</button>
+    <button *ngIf="patient && patient.patientStatus === 'ACTIVE'"
+            class="btn"
+            style="background:#DC2626;color:#fff;border-color:#DC2626;font-weight:600;padding:8px 20px;font-size:14px"
+            (click)="openDeactivateModal()">
+      Deactivate Patient
+    </button>
+  </div>
+
+  <div *ngIf="loading" style="padding:40px;text-align:center;color:#9CA3AF;font-size:13px">Loading…</div>
+
+  <ng-container *ngIf="!loading && patient">
+
+    <!-- Single centered rectangular card -->
+    <div class="pd-center-card">
+
+      <!-- Name + status -->
+      <div class="pd-name-row">
+        <div>
+          <div class="pd-name">{{ patient.name }}</div>
+          <div class="pd-email">{{ patient.contactInfo || 'No email on record' }}</div>
+        </div>
+        <span class="badge" style="font-size:12px;padding:5px 14px"
+              [ngClass]="{'b-active':   patient.patientStatus === 'ACTIVE',
+                          'b-inactive': patient.patientStatus !== 'ACTIVE'}">
+          {{ patient.patientStatus }}
+        </span>
+      </div>
+
+      <!-- Details grid (2 columns — compact square layout) -->
+      <div class="pd-details-grid">
+        <div class="pd-detail-item">
+          <div class="pd-detail-label">Date of birth</div>
+          <div class="pd-detail-value">{{ patient.dateOfBirth | date:'dd MMM yyyy' }}</div>
+        </div>
+        <div class="pd-detail-item">
+          <div class="pd-detail-label">Registered on</div>
+          <div class="pd-detail-value">{{ patient.createdAt | date:'dd MMM yyyy' }}</div>
+        </div>
+        <div class="pd-detail-item">
+          <div class="pd-detail-label" style="display:flex;align-items:center;gap:4px">
+            <svg width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="#9CA3AF" stroke-width="1.8"><rect x="3" y="2" width="14" height="16" rx="2"/><line x1="7" y1="7" x2="13" y2="7"/><line x1="7" y1="11" x2="13" y2="11"/><line x1="7" y1="15" x2="10" y2="15"/></svg>
+            Protocol
+          </div>
+          <div class="pd-detail-value">{{ patient.protocolTitle || '—' }}</div>
+        </div>
+        <div class="pd-detail-item">
+          <div class="pd-detail-label" style="display:flex;align-items:center;gap:4px">
+            <svg width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="#9CA3AF" stroke-width="1.8"><path d="M10 2a6 6 0 016 6c0 4-6 10-6 10S4 12 4 8a6 6 0 016-6z"/><circle cx="10" cy="8" r="2"/></svg>
+            Site
+          </div>
+          <div class="pd-detail-value">{{ patient.siteName || '—' }}</div>
+        </div>
+        <div class="pd-detail-item">
+          <div class="pd-detail-label">Enrollment status</div>
+          <div class="pd-detail-value">
+            <span class="badge" style="font-size:11px"
+                  [ngClass]="{'b-active':      patient.enrollmentStatus === 'Active',
+                              'b-completed':    patient.enrollmentStatus === 'Completed',
+                              'b-withdrawn':    patient.enrollmentStatus === 'Withdrawn',
+                              'b-not-enrolled': patient.enrollmentStatus === 'Not enrolled',
+                              'b-inactive':     patient.enrollmentStatus === 'Inactive'}">
+              {{ patient.enrollmentStatus }}
+            </span>
+          </div>
+        </div>
+        <div class="pd-detail-item">
+          <div class="pd-detail-label">Email</div>
+          <div class="pd-detail-value" style="font-size:12px;font-weight:500;color:#6B7280">
+            {{ patient.contactInfo || '—' }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Enrollment history -->
+      <div class="pd-section-head">
+        <span class="pd-section-title">Enrollment history</span>
+        <span class="pd-section-count">{{ enrollments.length }} record{{ enrollments.length !== 1 ? 's' : '' }}</span>
+      </div>
+
+      <div *ngIf="enrollments.length > 0">
+        <table class="pd-table">
+          <thead>
+            <tr>
+              <th>Protocol</th>
+              <th>Site</th>
+              <th>Enrolled date</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let e of enrollments">
+              <td style="font-weight:500">{{ e.protocolTitle || '—' }}</td>
+              <td style="color:#6B7280">{{ e.siteName || '—' }}</td>
+              <td style="color:#6B7280;font-size:12px">{{ e.enrolledAt | date:'dd MMM yyyy' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div *ngIf="enrollments.length === 0" class="pd-empty">
+        No enrollment records found.
+      </div>
+
+    </div>
+
+  </ng-container>
+
+  <!-- Deactivate Confirmation Modal (single step) -->
+  <div *ngIf="showDeactivateModal"
+       style="position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px">
+    <div style="background:#fff;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,0.2);width:100%;max-width:400px;overflow:hidden">
+      <div class="modal-head">
+        <div class="modal-title" style="color:#DC2626">Confirm deactivation</div>
+        <div (click)="closeDeactivateModal()" class="modal-close-btn">&times;</div>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:13px;color:#374151;margin:0;line-height:1.7">
+          Are you sure you want to deactivate <b>{{ patient?.name }}</b>?
+        </p>
+        <div style="margin-top:12px;padding:10px 12px;background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;font-size:12px;color:#991B1B">
+          Any active enrollment will be automatically withdrawn. This cannot be undone.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-sm" style="background:#DC2626;color:#fff;border-color:#DC2626"
+                (click)="confirmDeactivate()">Yes, deactivate</button>
+      </div>
+    </div>
+  </div>
+
+</div>

@@ -1,0 +1,472 @@
+<div class="shell">
+
+  <!-- ── Sidebar ─────────────────────────────────────────── -->
+  <aside class="sidebar" [class.collapsed]="sidebarCollapsed">
+
+    <div class="sidebar-top">
+      <div class="sidebar-brand">
+        <span class="sidebar-title" *ngIf="!sidebarCollapsed">LIFESCI360</span>
+      </div>
+      <button class="collapse-btn" (click)="sidebarCollapsed = !sidebarCollapsed">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path *ngIf="!sidebarCollapsed" d="M11 19l-7-7 7-7M18 19l-7-7 7-7"/>
+          <path *ngIf="sidebarCollapsed"  d="M13 5l7 7-7 7M6 5l7 7-7 7"/>
+        </svg>
+      </button>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item" *ngFor="let item of visibleNavItems"
+        [class.active]="activeNav === item.key"
+        (click)="onNavChange(item.key)" [title]="item.label">
+        <svg *ngIf="item.icon==='grid'"     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        <svg *ngIf="item.icon==='users'"    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+        <svg *ngIf="item.icon==='flask'"    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 3h6M9 3v8l-4 9h14l-4-9V3"/></svg>
+        <svg *ngIf="item.icon==='beaker'"   viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4.5 6H20M4.5 6L4 20h16l-.5-14M4.5 6l2.5-3h10l2.5 3"/></svg>
+        <svg *ngIf="item.icon==='doc'"      viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 12h6M9 16h6M13 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V8l-7-5z"/></svg>
+        <svg *ngIf="item.icon==='chart'"    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18M7 16l4-4 4 4 4-4"/></svg>
+        <svg *ngIf="item.icon==='audit'"    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 12h6M9 16h6M17 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2z"/><path d="M9 8h6"/></svg>
+        <span *ngIf="item.icon==='bell'" class="nav-icon-badge-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+          <span class="nav-badge" *ngIf="notifUnread > 0">{{ notifUnread > 99 ? '99+' : notifUnread }}</span>
+        </span>
+        <svg *ngIf="item.icon==='location'"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <span class="nav-label" *ngIf="!sidebarCollapsed">{{ item.label }}</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="sidebar-user" *ngIf="!sidebarCollapsed">
+        <div class="user-avatar">{{ initials }}</div>
+        <div class="user-meta">
+          <span class="user-email">{{ email }}</span>
+          <span class="user-role">{{ role }}</span>
+        </div>
+      </div>
+      <div class="user-avatar solo" *ngIf="sidebarCollapsed">{{ initials }}</div>
+      <button class="logout-btn" (click)="logout()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 16l4-4m0 0l-4-4m4 4H7M13 12v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        <span *ngIf="!sidebarCollapsed">Logout</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ── Main ─────────────────────────────────────────────── -->
+  <div class="main">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <h2 class="page-title">
+          {{ activeNav === 'dashboard'        ? 'Dashboard'
+           : activeNav === 'users'           ? 'User Management'
+           : activeNav === 'audit'           ? 'Audit Log'
+           : activeNav === 'trials'          ? 'Patients'
+           : activeNav === 'samples'         ? 'Lab & Samples'
+           : activeNav === 'protocols'       ? 'Protocols'
+           : activeNav === 'create-protocol' ? 'Create Protocol'
+           : activeNav === 'sites'           ? 'Research Sites'
+           : activeNav === 'create-site'     ? 'Register Site'
+           : activeNav === 'reports'         ? 'Reports'
+           : activeNav === 'notifications'   ? 'Notifications & Alerts'
+           : 'Dashboard' }}
+        </h2>
+        <span class="breadcrumb">LifeSci360 / {{ role }}</span>
+      </div>
+      <div class="topbar-right">
+        <button class="notif-btn" (click)="onNavChange('notifications')" title="Notifications">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+          <span class="notif-badge" *ngIf="notifUnread > 0">{{ notifUnread > 99 ? '99+' : notifUnread }}</span>
+        </button>
+        <div class="profile-wrap" (click)="toggleProfileMenu($event)">
+          <div class="topbar-avatar">{{ initials }}</div>
+          <div class="profile-dropdown" *ngIf="showProfileMenu" (click)="$event.stopPropagation()">
+            <div class="pd-header">
+              <div class="pd-avatar-lg">{{ initials }}</div>
+              <div class="pd-info">
+                <span class="pd-name">{{ name }}</span>
+                <span class="pd-email">{{ email }}</span>
+                <span class="pd-role-badge">{{ role }}</span>
+              </div>
+            </div>
+            <div class="pd-divider"></div>
+            <button class="pd-item pd-logout" (click)="logout()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 16l4-4m0 0l-4-4m4 4H7M13 12v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+              Sign out
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ══ DASHBOARD ══ -->
+    <div class="content" *ngIf="activeNav === 'dashboard'">
+      <div class="welcome-banner">
+        <div>
+          <h3>{{ greeting }}, {{ name }}!</h3>
+          <p>Watch around the activities going on your company.</p>
+        </div>
+        <div class="banner-date">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/></svg>
+          <span>{{ today }}</span>
+        </div>
+      </div>
+
+      <!-- Admin stats grid -->
+      <div class="stats-grid" *ngIf="isAdmin">
+        <div class="stat-card" *ngFor="let s of stats">
+          <div class="stat-top">
+            <div class="stat-icon-wrap" [style.background]="s.color" [style.color]="s.accent">
+              <svg *ngIf="s.icon==='users'"    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+              <svg *ngIf="s.icon==='enrolled'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+              <svg *ngIf="s.icon==='sessions'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+              <svg *ngIf="s.icon==='shield'"   viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <span class="stat-delta" [class.up]="s.up" [class.down]="!s.up" *ngIf="s.delta">
+              {{ s.delta }}
+              <svg viewBox="0 0 12 12" fill="currentColor"><path *ngIf="s.up" d="M6 2l4 5H2l4-5z"/><path *ngIf="!s.up" d="M6 10L2 5h8l-4 5z"/></svg>
+            </span>
+          </div>
+          <p class="stat-value">{{ s.value }}</p>
+          <p class="stat-label">{{ s.label }}</p>
+        </div>
+      </div>
+
+      <!-- Non-admin professional dashboard -->
+      <ng-container *ngIf="!isAdmin">
+
+        <div class="stats-grid" style="margin-bottom:1.5rem;">
+          <div class="stat-card">
+            <div class="stat-top">
+              <div class="stat-icon-wrap" style="background:#e8f5e9;color:#2e7d32;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4.5 6H20M4.5 6L4 20h16l-.5-14M4.5 6l2.5-3h10l2.5 3"/></svg>
+              </div>
+            </div>
+            <p class="stat-value">{{ samplesLoading ? '—' : myTotalSamples }}</p>
+            <p class="stat-label">{{ role === 'LAB_TECHNICIAN' ? 'My Samples' : 'Total Samples' }}</p>
+          </div>
+          <div class="stat-card">
+            <div class="stat-top">
+              <div class="stat-icon-wrap" style="background:#fef3c7;color:#92400e;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              </div>
+            </div>
+            <p class="stat-value">{{ samplesLoading ? '—' : myActiveSamples }}</p>
+            <p class="stat-label">Active / In-Process</p>
+          </div>
+          <div class="stat-card">
+            <div class="stat-top">
+              <div class="stat-icon-wrap" style="background:#dcfce7;color:#15803d;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              </div>
+            </div>
+            <p class="stat-value">{{ samplesLoading ? '—' : myCompletedSamples }}</p>
+            <p class="stat-label">Tested / Analyzed</p>
+          </div>
+          <div class="stat-card">
+            <div class="stat-top">
+              <div class="stat-icon-wrap" style="background:#fee2e2;color:#b91c1c;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+              </div>
+            </div>
+            <p class="stat-value">{{ samplesLoading ? '—' : myRejectedSamples }}</p>
+            <p class="stat-label">Rejected</p>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 2fr;gap:1.25rem;align-items:start;">
+          <div class="section-card">
+            <div class="section-header"><h4>Quick Actions</h4></div>
+            <div style="padding:.5rem 1rem 1rem;">
+              <button class="qa-card" style="width:100%;margin-bottom:.75rem;" (click)="onNavChange('samples')">
+                <div class="qa-icon" style="background:#e8f5e9;color:#2e7d32;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4.5 6H20M4.5 6L4 20h16l-.5-14M4.5 6l2.5-3h10l2.5 3"/></svg>
+                </div>
+                <div class="qa-text"><span class="qa-label">My Samples</span><span class="qa-sub">View all your samples</span></div>
+                <svg class="qa-arrow" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>
+              </button>
+              <button class="qa-card" style="width:100%;" *ngIf="canCreateSample" (click)="navigateToSamplesAndCreate()">
+                <div class="qa-icon" style="background:#e3f2fd;color:#1565c0;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </div>
+                <div class="qa-text"><span class="qa-label">New Sample</span><span class="qa-sub">Record a new collection</span></div>
+                <svg class="qa-arrow" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="section-card">
+            <div class="section-header">
+              <h4>Recent Samples</h4>
+              <button class="see-all-btn" (click)="onNavChange('samples')">See all</button>
+            </div>
+            <div class="re-loading" *ngIf="samplesLoading"><div class="spinner-lg"></div><span>Loading...</span></div>
+            <ul class="re-list" *ngIf="!samplesLoading">
+              <li class="re-item" *ngFor="let s of myRecentSamples">
+                <div class="re-avatar" style="border-radius:8px;background:#e8f5e9;color:#2e7d32;">
+                  <svg viewBox="0 0 20 20" fill="currentColor" style="width:16px;height:16px;"><path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"/></svg>
+                </div>
+                <div class="re-info">
+                  <span class="re-name">{{ s.sampleType }}</span>
+                  <span class="re-email">{{ s.collectedDate | date:'dd MMM yyyy, HH:mm' }}</span>
+                </div>
+                <span class="sample-status-badge" [style.background]="statusColor(s.status)" [style.color]="statusTextColor(s.status)">{{ s.status }}</span>
+              </li>
+              <li class="re-empty" *ngIf="myRecentSamples.length === 0">No samples collected yet.</li>
+            </ul>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- Quick Actions (admin only) -->
+      <div class="quick-actions" *ngIf="isAdmin">
+        <h4 class="qa-title">Quick Actions</h4>
+        <div class="qa-grid">
+          <button class="qa-card" (click)="enrollEmployee()">
+            <div class="qa-icon" style="background:#e8f5e9; color:#2e7d32;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+            </div>
+            <div class="qa-text">
+              <span class="qa-label">Enroll Employee</span>
+              <span class="qa-sub">Add a new team member</span>
+            </div>
+            <svg class="qa-arrow" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>
+          </button>
+
+          <button class="qa-card" (click)="onNavChange('users')">
+            <div class="qa-icon" style="background:#e3f2fd; color:#1565c0;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+            </div>
+            <div class="qa-text">
+              <span class="qa-label">Manage Users</span>
+              <span class="qa-sub">View all enrolled users</span>
+            </div>
+            <svg class="qa-arrow" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>
+          </button>
+
+          <button class="qa-card" (click)="onNavChange('reports')">
+            <div class="qa-icon" style="background:#f3e5f5; color:#6a1b9a;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18M7 16l4-4 4 4 4-4"/></svg>
+            </div>
+            <div class="qa-text">
+              <span class="qa-label">View Reports</span>
+              <span class="qa-sub">Compliance & analytics</span>
+            </div>
+            <svg class="qa-arrow" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>
+          </button>
+
+          <button class="qa-card" (click)="onNavChange('trials')">
+            <div class="qa-icon" style="background:#fff3e0; color:#e65100;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 3h6M9 3v8l-4 9h14l-4-9V3"/></svg>
+            </div>
+            <div class="qa-text">
+              <span class="qa-label">Patients</span>
+              <span class="qa-sub">View patients</span>
+            </div>
+            <svg class="qa-arrow" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="section-card" *ngIf="isAdmin">
+        <div class="section-header">
+          <h4>Recently Enrolled</h4>
+          <button class="see-all-btn" (click)="onNavChange('users')">See all</button>
+        </div>
+        <div class="re-loading" *ngIf="sessionsLoading">
+          <div class="spinner-lg"></div><span>Loading...</span>
+        </div>
+        <ul class="re-list" *ngIf="!sessionsLoading">
+          <li class="re-item" *ngFor="let u of recentEmployees">
+            <div class="re-avatar">{{ avatarFor(u.name) }}</div>
+            <div class="re-info">
+              <span class="re-name">{{ u.name }}</span>
+              <span class="re-email">{{ u.email }}</span>
+            </div>
+            <div class="re-right">
+              <span class="role-chip">{{ u.role }}</span>
+              <span class="re-date">{{ u.createdAt | date:'dd MMM yyyy' }}</span>
+            </div>
+          </li>
+          <li class="re-empty" *ngIf="recentEmployees.length === 0">No employees enrolled yet.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ══ USERS MODULE ══ -->
+    <app-users *ngIf="activeNav === 'users'" [role]="role" #usersComp></app-users>
+
+    <!-- ══ SAMPLES MODULE ══ -->
+    <app-samples *ngIf="activeNav === 'samples'" [role]="role" [currentUserId]="currentUserId" #samplesComp></app-samples>
+
+    <!-- ══ REPORTS MODULE ══ -->
+    <app-reports *ngIf="activeNav === 'reports'" [role]="role"></app-reports>
+
+    <!-- ══ NOTIFICATIONS MODULE ══ -->
+    <app-notifications *ngIf="activeNav === 'notifications'" [role]="role" [currentUserId]="currentUserId"></app-notifications>
+
+    <!-- ══ CLINICAL TRIALS ══ -->
+    <div class="content" *ngIf="activeNav === 'trials'" style="overflow-y:auto">
+
+      <!-- Access denied -->
+      <div style="padding:1.5rem 1.75rem" *ngIf="!canAccessTrials">
+        <div class="access-denied">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <h3>Access Restricted</h3>
+          <p>Only Admins and Clinical Trial Managers can access this module.</p>
+        </div>
+      </div>
+
+      <ng-container *ngIf="canAccessTrials">
+
+        <!-- Sub-navigation tab bar -->
+        <div style="display:flex;align-items:center;gap:6px;background:#fff;border:1px solid #ddd8d0;border-radius:10px;padding:10px 14px;flex-wrap:wrap;">
+          <button (click)="setTrialsView('patients-list')"
+            style="padding:7px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap;border:1px solid"
+            [style.background]="trialsView==='patients-list' ? '#1b3a2d' : '#fff'"
+            [style.color]="trialsView==='patients-list' ? '#fff' : '#374151'"
+            [style.border-color]="trialsView==='patients-list' ? '#1b3a2d' : '#d1d5db'">
+            Patients
+          </button>
+          <button (click)="setTrialsView('add-patient')"
+            style="padding:7px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap;border:1px solid"
+            [style.background]="trialsView==='add-patient' ? '#1b3a2d' : '#fff'"
+            [style.color]="trialsView==='add-patient' ? '#fff' : '#374151'"
+            [style.border-color]="trialsView==='add-patient' ? '#1b3a2d' : '#d1d5db'">
+            Add Patient
+          </button>
+          <button (click)="setTrialsView('enroll-patient')"
+            style="padding:7px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap;border:1px solid"
+            [style.background]="trialsView==='enroll-patient' ? '#1b3a2d' : '#fff'"
+            [style.color]="trialsView==='enroll-patient' ? '#fff' : '#374151'"
+            [style.border-color]="trialsView==='enroll-patient' ? '#1b3a2d' : '#d1d5db'">
+            Enroll Patient
+          </button>
+          <button (click)="setTrialsView('protocol-visits')"
+            style="padding:7px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap;border:1px solid"
+            [style.background]="trialsView==='protocol-visits' ? '#1b3a2d' : '#fff'"
+            [style.color]="trialsView==='protocol-visits' ? '#fff' : '#374151'"
+            [style.border-color]="trialsView==='protocol-visits' ? '#1b3a2d' : '#d1d5db'">
+            Schedule Visits
+          </button>
+          <button (click)="setTrialsView('visits')"
+            style="padding:7px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap;border:1px solid"
+            [style.background]="trialsView==='visits' ? '#1b3a2d' : '#fff'"
+            [style.color]="trialsView==='visits' ? '#fff' : '#374151'"
+            [style.border-color]="trialsView==='visits' ? '#1b3a2d' : '#d1d5db'">
+            Visit Management
+          </button>
+          <button (click)="setTrialsView('mark-visits')"
+            style="padding:7px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap;border:1px solid"
+            [style.background]="trialsView==='mark-visits' ? '#1b3a2d' : '#fff'"
+            [style.color]="trialsView==='mark-visits' ? '#fff' : '#374151'"
+            [style.border-color]="trialsView==='mark-visits' ? '#1b3a2d' : '#d1d5db'">
+            Mark Visits
+          </button>
+        </div>
+
+        <!-- Embedded patient module components -->
+        <app-patients-list    *ngIf="trialsView === 'patients-list'"></app-patients-list>
+        <app-add-patient      *ngIf="trialsView === 'add-patient'"></app-add-patient>
+        <app-enroll-patient   *ngIf="trialsView === 'enroll-patient'"></app-enroll-patient>
+        <app-protocol-visits  *ngIf="trialsView === 'protocol-visits'"></app-protocol-visits>
+        <app-visits           *ngIf="trialsView === 'visits'"></app-visits>
+        <app-mark-visits      *ngIf="trialsView === 'mark-visits'"></app-mark-visits>
+
+      </ng-container>
+    </div>
+
+    <!-- ══ AUDIT LOG ══ -->
+    <div class="content" *ngIf="activeNav === 'audit'">
+
+      <div class="audit-toolbar">
+        <div>
+          <h3 class="section-title">Activity Audit Log</h3>
+          <p class="section-sub">All platform events — logins, enrollments, and failures — in real time.</p>
+        </div>
+        <div class="audit-filter-wrap">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/></svg>
+          <input type="text" [value]="auditFilter" (input)="applyAuditFilter($any($event.target).value)" placeholder="Filter by name, email, or action..."/>
+        </div>
+      </div>
+
+      <div class="loading-row" *ngIf="auditLoading">
+        <div class="spinner-lg"></div>
+        <span>Loading audit log...</span>
+      </div>
+
+      <div class="section-card" *ngIf="!auditLoading">
+        <div class="section-header">
+          <h4>Events</h4>
+          <span class="section-badge">{{ filteredAuditLogs.length }} records</span>
+        </div>
+        <div class="table-wrap table-wrap--scroll">
+          <table>
+            <thead class="thead-sticky">
+              <tr>
+                <th>Timestamp</th>
+                <th>Actor</th>
+                <th>Action</th>
+                <th>Description</th>
+                <th>Target</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let log of filteredAuditLogs">
+                <td class="muted audit-time">{{ log.createdAt + 'Z' | date:'dd MMM yyyy, HH:mm:ss' }}</td>
+                <td>
+                  <div class="td-user">
+                    <div class="td-avatar">{{ avatarFor(log.actorName) }}</div>
+                    <div class="actor-meta">
+                      <span class="user-name">{{ log.actorName }}</span>
+                      <span class="actor-email">{{ log.actorEmail }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <span class="action-badge" [style.background]="actionColor(log.action)" [style.color]="actionTextColor(log.action)">
+                    {{ log.action }}
+                  </span>
+                </td>
+                <td class="audit-desc">{{ log.description }}</td>
+                <td class="muted">{{ log.entityName || '—' }}</td>
+                <td>
+                  <span class="status-badge" [class.active]="log.isSuccess" [class.offline]="!log.isSuccess">
+                    <span class="status-dot"></span>{{ log.isSuccess ? 'Success' : 'Failed' }}
+                  </span>
+                </td>
+              </tr>
+              <tr *ngIf="filteredAuditLogs.length === 0 && !auditLoading">
+                <td colspan="6" class="empty-row">No audit events found.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ PROTOCOLS ══ -->
+    <div class="content" *ngIf="activeNav === 'protocols'">
+      <app-protocols (navigate)="onProtocolNavigate($event)"></app-protocols>
+    </div>
+
+    <!-- ══ CREATE PROTOCOL ══ -->
+    <div class="content" *ngIf="activeNav === 'create-protocol'">
+      <app-create-protocol (navigate)="onProtocolNavigate($event)"></app-create-protocol>
+    </div>
+
+    <!-- ══ SITES ══ -->
+    <div class="content" *ngIf="activeNav === 'sites'">
+      <app-sites (navigate)="onProtocolNavigate($event)"></app-sites>
+    </div>
+
+    <!-- ══ CREATE SITE ══ -->
+    <div class="content" *ngIf="activeNav === 'create-site'">
+      <app-create-site (navigate)="onProtocolNavigate($event)"></app-create-site>
+    </div>
+
+
+  </div><!-- /main -->
+
+</div>
